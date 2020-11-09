@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>Hexo</title>
+  <title>MJ-CJM的博客</title>
   
-  
+  <subtitle>Just do it</subtitle>
   <link href="http://blog.mj-cjm.top/atom.xml" rel="self"/>
   
   <link href="http://blog.mj-cjm.top/"/>
@@ -10,7 +10,7 @@
   <id>http://blog.mj-cjm.top/</id>
   
   <author>
-    <name>John Doe</name>
+    <name>MJ-CJM</name>
     
   </author>
   
