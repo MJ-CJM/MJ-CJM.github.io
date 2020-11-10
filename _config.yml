@@ -3,11 +3,11 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
-subtitle: ''
-description: ''
-keywords:
-author: John Doe
+title: MJ-CJM的博客
+subtitle: 'Just do it'
+description: '南京邮电大学 | 边缘计算 | 研三'
+keywords: "云计算 边缘计算 MJ-CJM Kubernetes Docker"
+author: MJ-CJM
 language: zh-CN
 timezone: ''
 
@@ -20,6 +20,9 @@ permalink_defaults:
 pretty_urls:
   trailing_index: true # Set to false to remove trailing 'index.html' from permalinks
   trailing_html: true # Set to false to remove trailing '.html' from permalinks
+permalink_pinyin:
+  enable: true
+  separator: '-' # default: '-'
 
 # Directory
 source_dir: source
@@ -45,12 +48,17 @@ post_asset_folder: false
 relative_link: false
 future: true
 highlight:
-  enable: true
+  enable: false
   line_number: true
   auto_detect: false
   tab_replace: ''
   wrap: true
   hljs: false
+prism_plugin:
+  mode: 'preprocess'    # realtime/preprocess
+  theme: 'tomorrow'
+  line_number: false    # default false
+  custom_css:
 prismjs:
   enable: false
   preprocess: true
@@ -95,11 +103,35 @@ include:
 exclude:
 ignore:
 
+# Search
+search:
+  path: search.xml
+  field: post
+
+# emoji表情
+githubEmojis:
+  enable: true
+  className: github-emoji
+  inject: true
+  styles:
+  customEmojis:
+
+# RSS订阅
+feed:
+  type: atom
+  path: atom.xml
+  limit: 20
+  hub:
+  content:
+  content_limit: 140
+  content_limit_delim: ' '
+  order_by: -date
+
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
-# theme: hexo-theme-matery
+# theme: landscape
+theme: hexo-theme-matery
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
