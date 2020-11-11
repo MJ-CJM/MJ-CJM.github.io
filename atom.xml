@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>MJ-CJM的博客</title>
+  <title>MJ-CJM</title>
   
   <subtitle>Just do it</subtitle>
   <link href="http://blog.mj-cjm.top/atom.xml" rel="self"/>
   
   <link href="http://blog.mj-cjm.top/"/>
-  <updated>2020-11-08T14:28:39.750Z</updated>
+  <updated>2020-11-11T12:46:02.009Z</updated>
   <id>http://blog.mj-cjm.top/</id>
   
   <author>
@@ -17,23 +17,27 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>Hello World</title>
-    <link href="http://blog.mj-cjm.top/2020/11/08/hello-world/"/>
-    <id>http://blog.mj-cjm.top/2020/11/08/hello-world/</id>
-    <published>2020-11-08T14:28:39.750Z</published>
-    <updated>2020-11-08T14:28:39.750Z</updated>
+    <title>Kubernetes源码架构</title>
+    <link href="http://blog.mj-cjm.top/kubernetes-yuan-ma-jia-gou/"/>
+    <id>http://blog.mj-cjm.top/kubernetes-yuan-ma-jia-gou/</id>
+    <published>2020-11-11T02:48:44.000Z</published>
+    <updated>2020-11-11T12:46:02.009Z</updated>
     
     
       
       
         
         
-    <summary type="html">&lt;p&gt;Welcome to &lt;a href=&quot;https://hexo.io/&quot;&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a href=&quot;https://hexo.io/docs/&quot;&gt;documentation&lt;/a&gt;</summary>
+    <summary type="html">&lt;h2 id=&quot;Kubernetes架构图&quot;&gt;&lt;a href=&quot;#Kubernetes架构图&quot; class=&quot;headerlink&quot; title=&quot;Kubernetes架构图&quot;&gt;&lt;/a&gt;Kubernetes架构图&lt;/h2&gt;&lt;p&gt;&lt;img</summary>
         
       
     
     
     
+    <category term="Kubernetes源码解析" scheme="http://blog.mj-cjm.top/categories/Kubernetes%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
+    
+    
+    <category term="Kubernetes" scheme="http://blog.mj-cjm.top/tags/Kubernetes/"/>
     
   </entry>
   
