@@ -3,7 +3,7 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: MJ-CJM的博客
+title: MJ-CJM
 subtitle: 'Just do it'
 description: '南京邮电大学 | 边缘计算 | 研三'
 keywords: "云计算 边缘计算 MJ-CJM Kubernetes Docker"
@@ -15,7 +15,8 @@ timezone: ''
 ## If your site is put in a subdirectory, set url as 'http://example.com/child' and root as '/child/'
 url: http://blog.mj-cjm.top
 root: /
-permalink: :year/:month/:day/:title/
+# permalink: :year/:month/:day/:title/
+permalink: :title/
 permalink_defaults:
 pretty_urls:
   trailing_index: true # Set to false to remove trailing 'index.html' from permalinks
@@ -57,7 +58,7 @@ highlight:
 prism_plugin:
   mode: 'preprocess'    # realtime/preprocess
   theme: 'tomorrow'
-  line_number: false    # default false
+  line_number: true    # default false
   custom_css:
 prismjs:
   enable: false
