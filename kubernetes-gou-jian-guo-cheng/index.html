@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Kubernetes源码架构, 云计算 边缘计算 MJ-CJM Kubernetes Docker">
+    <meta name="keywords" content="Kubernetes构建过程1.0, 云计算 边缘计算 MJ-CJM Kubernetes Docker">
     <meta name="description" content="南京邮电大学 | 边缘计算 | 研三">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>Kubernetes源码架构 | MJ-CJM</title>
+    <title>Kubernetes构建过程1.0 | MJ-CJM</title>
     <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -314,12 +314,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/21.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/11.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">Kubernetes源码架构</h1>
+                    <h1 class="description center-align post-title">Kubernetes构建过程1.0</h1>
                 </div>
             </div>
         </div>
@@ -461,7 +461,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-11-11
+                    2020-11-12
                 </div>
                 
 
@@ -477,111 +477,69 @@
         <hr class="clearfix">
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="Kubernetes架构图"><a href="#Kubernetes架构图" class="headerlink" title="Kubernetes架构图"></a>Kubernetes架构图</h2><p><img src="../image/kubernetes%E6%9E%B6%E6%9E%84%E5%9B%BE.jpg" alt="kubernetes架构图"></p>
-<h2 id="Kubernetes各组件功能"><a href="#Kubernetes各组件功能" class="headerlink" title="Kubernetes各组件功能"></a>Kubernetes各组件功能</h2><h3 id="kube-apiserver"><a href="#kube-apiserver" class="headerlink" title="kube-apiserver"></a>kube-apiserver</h3><ul>
-<li>集群的 HTTP REST API 接口，是集群控制的入口</li>
-<li>也是集群中唯一与 Etcd 集群进行交互的核心组件<blockquote>
-<p>Etcd 集群是分布式键值存储集群，提供了可靠的强一致性服务发现</p>
-</blockquote>
-</li>
-</ul>
-<h3 id="kube-controller-manager"><a href="#kube-controller-manager" class="headerlink" title="kube-controller-manager"></a>kube-controller-manager</h3><ul>
-<li>集群中所有资源对象的自动化控制中心</li>
-<li>每个控制器通过 kube-apiserver 组件提供的接口实时监控整个集群每个资源对象的当前状态，当因发生各种故障而导致系统状态出现变化时，会尝试将系统状态修复到“期望状态”</li>
-<li>Controller Manager 具备高可用性（多实例同时运行）<blockquote>
-<p>即基于 Etcd 集群上的分布式锁实现领导者选举机制，多实例同时运行，通过 kube-apiserver 提供的资源锁进行选举竞争。抢先获取锁的实例被称为 Leader 节点（即领导者节点），并运行该组件的主逻辑，而未获取锁的实例被称为 Candidate 节点（即候选节点），运行时处于阻塞状态。在 Leader 节点因某些原因退出后，Candidate 节点则通过领导者选举机制参与竞选，成为 Leader 节点后接替该组件的工作</p>
-</blockquote>
-</li>
-</ul>
-<h3 id="kube-scheduler"><a href="#kube-scheduler" class="headerlink" title="kube-scheduler"></a>kube-scheduler</h3><ul>
-<li>集群中 Pod 资源对象的调度服务</li>
-<li>kube-scheduler 具备高可用性（多实例同时运行）具体同上<blockquote>
-<p>具体调度我会在后面仔细整理，里面其实很有趣好玩</p>
-</blockquote>
-</li>
-</ul>
-<h3 id="kubelet"><a href="#kubelet" class="headerlink" title="kubelet"></a>kubelet</h3><ul>
-<li>负责管理节点上容器的创建、删除、启停等任务，与 Master 节点进行通信</li>
-</ul>
-<h3 id="kube-proxy"><a href="#kube-proxy" class="headerlink" title="kube-proxy"></a>kube-proxy</h3><ul>
-<li>负责 kubernetes 服务的通信及负载均衡服务</li>
-<li>通过 iptables/ipvs 等配置负载均衡器，为一组 pod 提供统一的 TCP/UDP 流量转发和负载均衡功能</li>
-</ul>
-<h3 id="container"><a href="#container" class="headerlink" title="container"></a>container</h3><ul>
-<li>负责容器的基础管理服务，接受 kubelet 组件的指令</li>
-</ul>
-<h3 id="client-go"><a href="#client-go" class="headerlink" title="client-go"></a>client-go</h3><ul>
-<li>是从 kubernetes 代码中单独抽离出来的包，并作为官方提供的 Go 语言客户端发挥作用</li>
-<li>kubernetes 系统的其他组件与 kubernetes API Server 通信的方式也是基于 client-go 实现<blockquote>
-<p>因此在基于 kubernetes 做二次开发的过程中，建议通过 client-go 来实现与 kubernetes API Server 的交互过程</p>
-</blockquote>
-</li>
-</ul>
-<h2 id="Kubernetes-Project-Layout设计"><a href="#Kubernetes-Project-Layout设计" class="headerlink" title="Kubernetes Project Layout设计"></a>Kubernetes Project Layout设计</h2><table>
+                <h2 id="代码生成器"><a href="#代码生成器" class="headerlink" title="代码生成器"></a>代码生成器</h2><h3 id="举例5个代码生成器"><a href="#举例5个代码生成器" class="headerlink" title="举例5个代码生成器"></a>举例5个代码生成器</h3><table>
 <thead>
 <tr>
-<th>源码目录</th>
+<th>代码生成器</th>
 <th>说明</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>cmd/</td>
-<td>存放可执行文件的代码入口，每个可执行文件都会对应一个main函数</td>
+<td>conversion-gen</td>
+<td>自动生成 Convert 函数的代码生成器，用于资源对象的版本转换函数</td>
 </tr>
 <tr>
-<td>pkg/</td>
-<td>存放核心库代码， 可被项目内外部直接饮用</td>
+<td>deepcopy-gen</td>
+<td>自动生成 DeepCopy 函数的代码生成器，用于资源对象的深复制函数</td>
 </tr>
 <tr>
-<td>vendor/</td>
-<td>存放项目的依赖库代码，一般为第三方库代码</td>
+<td>defaulter-gen</td>
+<td>自动生成 Defaulter 函数的代码生成器，用于资源对象的默认值函数</td>
 </tr>
 <tr>
-<td>api/</td>
-<td>存放 OpenAPI/Swagger 的 spec 文件，包括 Json, Protocol 的定义等</td>
+<td>go-bindata</td>
+<td>是一个第三方工具，它能够将静态资源文件嵌入 Go 语言中</td>
 </tr>
 <tr>
-<td>build/</td>
-<td>存放构建相关的脚本</td>
-</tr>
-<tr>
-<td>test/</td>
-<td>存放测试工具以及测试数据</td>
-</tr>
-<tr>
-<td>docs/</td>
-<td>存放设计或用户使用文档</td>
-</tr>
-<tr>
-<td>hack/</td>
-<td>存放与构建和测试相关的脚本</td>
-</tr>
-<tr>
-<td>third_party/</td>
-<td>存放第三方工具、代码和组件</td>
-</tr>
-<tr>
-<td>plugin/</td>
-<td>存放 Kubernetes 插件代码目录，例如认证、授权等相关插件</td>
-</tr>
-<tr>
-<td>staging/</td>
-<td>存放部分核心库的暂存目录</td>
-</tr>
-<tr>
-<td>translations/</td>
-<td>存放用于支持不同语言的相关文件</td>
+<td>openapi-gen</td>
+<td>自动生成 OpenAPI 定义文件的代码生成器</td>
 </tr>
 </tbody></table>
-<h2 id="Kube-apiserver的初始化过程"><a href="#Kube-apiserver的初始化过程" class="headerlink" title="Kube-apiserver的初始化过程"></a>Kube-apiserver的初始化过程</h2><ol>
-<li><strong>rand.Seed</strong>: 组件中的全局随机数生成对象。</li>
-<li><strong>app.NewCommand</strong>: 实例化命令行参数。通过 flags 对命令行参数进行解析并存储至 Options 对象中。</li>
-<li><strong>logs.InitLogs</strong>: 实例化日志对象，用于日志管理。</li>
-<li><strong>command.Execute</strong>: 组件进程运行的逻辑。运行前通过 Complete 函数填充默认参数，通过 Validate 函数验证所有参数，最后通过 Run 函数持久运行。只有当进程收到退出信号时，进程才会退出。<blockquote>
-<p>tips: Kubernetes 其他组件的 cmd 设计与之类似。</p>
+<h3 id="Tags"><a href="#Tags" class="headerlink" title="Tags"></a>Tags</h3><p>代码生成器通过 Tags(标签)来识别一个包是否需要生成代码及确定生成代码的方式，Kubernetes 提供的 Tags 可以分为如下两种，Tags 被定义在注释中。</p>
+<h4 id="全局-Tags"><a href="#全局-Tags" class="headerlink" title="全局 Tags"></a>全局 Tags</h4><ul>
+<li>定义在每个包的 doc.go文件中，对整个包中的类型自动生成代码</li>
+<li>代码示例如下：</li>
+</ul>
+<pre><code>// +k8s:deepcopy-gen=package
+// +groupName=example.com</code></pre>
+<p>该示例表示为包中的每个类型自动生成 DeepCopy 函数，其中// +groupName定义了资源组名称，资源组名称一般用域名形式表示</p>
+<h4 id="局部-Tags"><a href="#局部-Tags" class="headerlink" title="局部 Tags"></a>局部 Tags</h4><ul>
+<li>定义在 Go 语言的类型声明上方，只对指定的类型自动生成代码</li>
+<li>代码示例如下：</li>
+</ul>
+<pre><code>// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// Pod...</code></pre>
+<p>该代码示例局部 Tags 定义在 Pod 资源类型的上方，定义并执行两个代码生成器。</p>
+<blockquote>
+<p>Kubernetes 的 API 文档生成器会根据类型声明的注释信息生成文档，为了避免 Tags 信息出现在文档中，所以将 Tags 定义在注释的上方并空一行</p>
 </blockquote>
+<h4 id="deepcopy-gen-代码生成器"><a href="#deepcopy-gen-代码生成器" class="headerlink" title="deepcopy-gen 代码生成器"></a>deepcopy-gen 代码生成器</h4><p>给定一个包的目录路径作为输入源，它可以为其生成 DeepCopy 相关函数，这些函数可以有效地执行每种类型的深复制操作。</p>
+<p>有如下几种 Tags 形式：</p>
+<ul>
+<li><p>为整个包生成 DeepCopy 相关函数：</p>
+<pre><code>// +k8s:deepcopy-gen=package</code></pre>
 </li>
-</ol>
+<li><p>为单个类型生成 DeepCopy 相关函数：</p>
+<pre><code>// +k8s:deepcopy-gen=true</code></pre>
+</li>
+<li><p>为整个包生成 DeepCopy 相关函数时，可以忽略单个类型：</p>
+<pre><code>// +k8s:deepcopy-gen=false</code></pre>
+</li>
+<li><p>deepcopy-gen 会遍历包中所有类型，若类型为 types.Struct,则会为该类型生成深复制函数。</p>
+</li>
+</ul>
 
             </div>
             <hr/>
@@ -607,7 +565,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://blog.mj-cjm.top/kubernetes-yuan-ma-jia-gou/">http://blog.mj-cjm.top/kubernetes-yuan-ma-jia-gou/</a>
+                    <a href="http://blog.mj-cjm.top/kubernetes-gou-jian-guo-cheng/">http://blog.mj-cjm.top/kubernetes-gou-jian-guo-cheng/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -953,9 +911,10 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
                 <a href="/kubernetes-gou-jian-guo-cheng/">
                     <div class="card-image">
@@ -973,9 +932,9 @@
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2020-11-12
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-11-12
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -988,6 +947,7 @@
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -1003,7 +963,7 @@
         
         <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge right-badge text-color">
-                本篇&nbsp;<i class="far fa-dot-circle"></i>
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
                 <a href="/kubernetes-yuan-ma-jia-gou/">
@@ -1037,7 +997,6 @@
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     
