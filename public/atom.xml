@@ -6,7 +6,7 @@
   <link href="http://blog.mj-cjm.top/atom.xml" rel="self"/>
   
   <link href="http://blog.mj-cjm.top/"/>
-  <updated>2020-11-11T12:46:02.009Z</updated>
+  <updated>2020-11-12T04:11:34.518Z</updated>
   <id>http://blog.mj-cjm.top/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Kubernetes构建过程1.0</title>
+    <link href="http://blog.mj-cjm.top/kubernetes-gou-jian-guo-cheng/"/>
+    <id>http://blog.mj-cjm.top/kubernetes-gou-jian-guo-cheng/</id>
+    <published>2020-11-12T02:34:42.000Z</published>
+    <updated>2020-11-12T04:11:34.518Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;代码生成器&quot;&gt;&lt;a href=&quot;#代码生成器&quot; class=&quot;headerlink&quot; title=&quot;代码生成器&quot;&gt;&lt;/a&gt;代码生成器&lt;/h2&gt;&lt;h3 id=&quot;举例5个代码生成器&quot;&gt;&lt;a href=&quot;#举例5个代码生成器&quot; class=&quot;headerlink&quot;</summary>
+        
+      
+    
+    
+    
+    <category term="Kubernetes源码解析" scheme="http://blog.mj-cjm.top/categories/Kubernetes%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
+    
+    
+    <category term="Kubernetes" scheme="http://blog.mj-cjm.top/tags/Kubernetes/"/>
+    
+  </entry>
   
   <entry>
     <title>Kubernetes源码架构</title>

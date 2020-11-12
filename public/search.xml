@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>Kubernetes构建过程1.0</title>
+      <link href="kubernetes-gou-jian-guo-cheng/"/>
+      <url>kubernetes-gou-jian-guo-cheng/</url>
+      
+        <content type="html"><![CDATA[<h2 id="代码生成器"><a href="#代码生成器" class="headerlink" title="代码生成器"></a>代码生成器</h2><h3 id="举例5个代码生成器"><a href="#举例5个代码生成器" class="headerlink" title="举例5个代码生成器"></a>举例5个代码生成器</h3><table><thead><tr><th>代码生成器</th><th>说明</th></tr></thead><tbody><tr><td>conversion-gen</td><td>自动生成 Convert 函数的代码生成器，用于资源对象的版本转换函数</td></tr><tr><td>deepcopy-gen</td><td>自动生成 DeepCopy 函数的代码生成器，用于资源对象的深复制函数</td></tr><tr><td>defaulter-gen</td><td>自动生成 Defaulter 函数的代码生成器，用于资源对象的默认值函数</td></tr><tr><td>go-bindata</td><td>是一个第三方工具，它能够将静态资源文件嵌入 Go 语言中</td></tr><tr><td>openapi-gen</td><td>自动生成 OpenAPI 定义文件的代码生成器</td></tr></tbody></table><h3 id="Tags"><a href="#Tags" class="headerlink" title="Tags"></a>Tags</h3><p>代码生成器通过 Tags(标签)来识别一个包是否需要生成代码及确定生成代码的方式，Kubernetes 提供的 Tags 可以分为如下两种，Tags 被定义在注释中。</p><h4 id="全局-Tags"><a href="#全局-Tags" class="headerlink" title="全局 Tags"></a>全局 Tags</h4><ul><li>定义在每个包的 doc.go文件中，对整个包中的类型自动生成代码</li><li>代码示例如下：</li></ul><pre><code>// +k8s:deepcopy-gen=package// +groupName=example.com</code></pre><p>该示例表示为包中的每个类型自动生成 DeepCopy 函数，其中// +groupName定义了资源组名称，资源组名称一般用域名形式表示</p><h4 id="局部-Tags"><a href="#局部-Tags" class="headerlink" title="局部 Tags"></a>局部 Tags</h4><ul><li>定义在 Go 语言的类型声明上方，只对指定的类型自动生成代码</li><li>代码示例如下：</li></ul><pre><code>// +genclient// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object// Pod...</code></pre><p>该代码示例局部 Tags 定义在 Pod 资源类型的上方，定义并执行两个代码生成器。</p><blockquote><p>Kubernetes 的 API 文档生成器会根据类型声明的注释信息生成文档，为了避免 Tags 信息出现在文档中，所以将 Tags 定义在注释的上方并空一行</p></blockquote><h4 id="deepcopy-gen-代码生成器"><a href="#deepcopy-gen-代码生成器" class="headerlink" title="deepcopy-gen 代码生成器"></a>deepcopy-gen 代码生成器</h4><p>给定一个包的目录路径作为输入源，它可以为其生成 DeepCopy 相关函数，这些函数可以有效地执行每种类型的深复制操作。</p><p>有如下几种 Tags 形式：</p><ul><li><p>为整个包生成 DeepCopy 相关函数：</p><pre><code>// +k8s:deepcopy-gen=package</code></pre></li><li><p>为单个类型生成 DeepCopy 相关函数：</p><pre><code>// +k8s:deepcopy-gen=true</code></pre></li><li><p>为整个包生成 DeepCopy 相关函数时，可以忽略单个类型：</p><pre><code>// +k8s:deepcopy-gen=false</code></pre></li><li><p>deepcopy-gen 会遍历包中所有类型，若类型为 types.Struct,则会为该类型生成深复制函数。</p></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> Kubernetes源码解析 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Kubernetes </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Kubernetes源码架构</title>
       <link href="kubernetes-yuan-ma-jia-gou/"/>
       <url>kubernetes-yuan-ma-jia-gou/</url>
