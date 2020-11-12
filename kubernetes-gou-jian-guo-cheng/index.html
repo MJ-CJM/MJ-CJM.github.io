@@ -540,6 +540,18 @@
 <li><p>deepcopy-gen 会遍历包中所有类型，若类型为 types.Struct,则会为该类型生成深复制函数。</p>
 </li>
 </ul>
+<h4 id="defaulter-gen-代码生成器"><a href="#defaulter-gen-代码生成器" class="headerlink" title="defaulter-gen 代码生成器"></a>defaulter-gen 代码生成器</h4><p>给定一个包的目录路径作为输入源，它可以为其生成 Defaulter 相关函数，这些函数可以为资源对象生成默认值。</p>
+<ul>
+<li>为拥有不同属性的类型生成不同的 Defaulter 相关函数，其 Tags 形式如下：</li>
+</ul>
+<pre><code>// +k8s:defaulter-gen=TypeMeta/ListMeta/ObjectMeta</code></pre>
+<ul>
+<li>defaulter-gen-input 说明当前包会依赖于指定的路径包，代码示例如下：</li>
+</ul>
+<pre><code>// +k8s:defaulter-gen-input=../../../vendor/k8s.io/api/rbac/v1</code></pre>
+<ul>
+<li>defaulter-gen 会遍历包中所有类型，若类型属性拥有以上三种特定类型，则为该类型生成 Defaulter 函数，并为其生成 RegisterDefaults 注册函数。</li>
+</ul>
 
             </div>
             <hr/>
