@@ -68,4 +68,20 @@ openapi-gen | 自动生成 OpenAPI 定义文件的代码生成器
 
 * deepcopy-gen 会遍历包中所有类型，若类型为 types.Struct,则会为该类型生成深复制函数。
 
+#### defaulter-gen 代码生成器
 
+给定一个包的目录路径作为输入源，它可以为其生成 Defaulter 相关函数，这些函数可以为资源对象生成默认值。
+
+* 为拥有不同属性的类型生成不同的 Defaulter 相关函数，其 Tags 形式如下：
+
+```
+// +k8s:defaulter-gen=TypeMeta/ListMeta/ObjectMeta
+```
+
+* defaulter-gen-input 说明当前包会依赖于指定的路径包，代码示例如下：
+
+```
+// +k8s:defaulter-gen-input=../../../vendor/k8s.io/api/rbac/v1
+```
+
+* defaulter-gen 会遍历包中所有类型，若类型属性拥有以上三种特定类型，则为该类型生成 Defaulter 函数，并为其生成 RegisterDefaults 注册函数。
