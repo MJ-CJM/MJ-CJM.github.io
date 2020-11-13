@@ -85,3 +85,92 @@ openapi-gen | 自动生成 OpenAPI 定义文件的代码生成器
 ```
 
 * defaulter-gen 会遍历包中所有类型，若类型属性拥有以上三种特定类型，则为该类型生成 Defaulter 函数，并为其生成 RegisterDefaults 注册函数。
+
+#### conversion-gen 代码生成器
+
+给定一个包的目录路径作为输入源，它可以为其生成 Convert 相关函数，这些函数可以为对象在内部和外部类型之间提供转换函数。
+
+其 Tags 形式如下：
+
+* 为整个包生成 Convert 相关函数
+
+```
+// +k8s:conversion-gen=<peer-pkg>
+# <peer-pkg> 用于定义包的导入路径
+```
+
+* 为整个包生成 Convert 相关函数且依赖其他包时
+
+```
+// +k8s:conversion-gen-external-types=<type-pkg>
+# <type-pkg> 用于定义其他包的路径
+```
+
+* 在排除某个属性后生成 Convert 相关函数
+
+```
+// +k8s:conversion-gen=false
+```
+
+* conversion-gen 会遍历包中所有类型，若类型为 types.Struct 且过滤掉了私有 Struct 类型，则为该类型生成 Convert 函数，并为该类型同时生成 RegisterConversions 注册函数
+
+#### openapi-gen 代码生成器
+
+给定一个包的目录路径作为输入源，它可以为其生成 OpenAPI 定义文件，该文件用于 kube-apiserver 服务上的 OpenAPI 规范的生成。
+
+* 为特定类型或包生成 OpenAPI 定义文件时
+
+```
+// +k8s:openapi-gen=true
+```
+
+* 排除为特定类型或包生成 OpenAPI 定义时
+
+```
+// +k8s:openapi-gen=false
+```
+
+* openapi-gen 会遍历包中所有类型，若类型为 types.Struct 并忽略其他类型，则为 types.Struct 类型生成 OpenAPI 定义文件
+
+#### go-bindata 代码生成器
+
+给定一个静态资源目录路径作为输入源，go-bindata 可以为其生成 go 文件
+
+## 代码生成过程
+
+前面所提到的五种代码生成过程如下图所示
+
+![代码生成过程](../image/k8s代码生成过程图.jpg)
+
+* .todo 文件相当于临时文件，用来存放被 Tags 标记过的包。通过 shell 的 grep 命令可以将所有代码包中被 Tags 标记过的包目录记录在 .todo 文件中，这样可以方便记录哪些包需要使用代码生成功能。
+
+## gengo 代码生成核心实现
+
+Kubernetes 的代码生成器都是在 k8s.io/gengo 包的基础上实现的，代码生成器都会通过一个输入包路径（--input-dirs）参数，根据 gengo 的词法分析、抽象语法树等操作，最终生成代码并输出（--output-file-base），gengo 代码目录结构说明如下：
+
+* args: 代码生成器的通用 flags 参数。
+
+* examples: 包含 deepcopy-gen、defaulter-gen、import-boss、set-gen等代码生成器的生成逻辑。
+
+* generator: 代码生成器通用接口 Generator。
+
+* namer: 命名管理，支持创建不同类型的名称。例如，根据类型生成名称，定义 type foo string，能够生成 func FooPrinter(f *foo){Print(string(*f))}
+
+* parser: 代码解析器，用来构造抽象语法树。
+
+* types: 类型系统，用于数据类型的定义及类型检查算法的实现。
+
+### 代码生成逻辑与编译器原理
+
+![gengo代码生成原理](../image/gengo代码生成原理.jpg)
+
+* Gather The Info: 收集 Go 语言源码文件信息及内容
+
+* Lexer/Parser: 通过 Lexer 词法分析器进行一系列词法分析
+
+* AST Generator: 生成抽象语法树
+
+* Type Checker: 对抽象语法树进行类型检查
+
+* Code Generation: 生成代码，将抽象语法树转换为机器代码
+
