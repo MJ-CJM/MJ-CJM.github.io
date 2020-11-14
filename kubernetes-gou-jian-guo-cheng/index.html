@@ -639,7 +639,58 @@
 <li><p>通过标准库 go/types 下的 Check 方法进行抽象语法树类型检查，完成代码解析过程；</p>
 </li>
 </ol>
-<h3 id="类型系统"><a href="#类型系统" class="headerlink" title="类型系统"></a>类型系统</h3>
+<h3 id="类型系统"><a href="#类型系统" class="headerlink" title="类型系统"></a>类型系统</h3><p>gengo 的类型系统在 Go 语言本身的类型系统之上归类并添加了几种类型。在 Go 语言标准库 go/types 的基础上进行封装。所有的类型都通过 vendor/k8s.io/gengo/parser/parse.go 的 walkType 方法进行识别。gengo 类型系统中的 Struct、Map、Pointer、Interface等，与 Go 语言提供的类型并无差别。也有 gengo 与 Go 语言不同的类型，例如 Builtin、Alias、DeclarationOf、Unknown、Unsupported及Protobuf。另外，Signature并非是一个类型，它依赖于 Func 函数类型，用来描述 Func 函数的接收参数信息和返回值信息等。</p>
+<p>如下举例：</p>
+<h4 id="Builtin（内置类型）"><a href="#Builtin（内置类型）" class="headerlink" title="Builtin（内置类型）"></a>Builtin（内置类型）</h4><p>Builtin 将多种 Base 类型归类成一种类型，以下几种类型在 gengo 中统称为 Builtin 类型。</p>
+<ul>
+<li>内置字符串类型——string</li>
+<li>内置布尔类型——bool</li>
+<li>内置数字类型——int、float、complex64等</li>
+</ul>
+<h4 id="Alias（别名类型）"><a href="#Alias（别名类型）" class="headerlink" title="Alias（别名类型）"></a>Alias（别名类型）</h4><p>举例如下：</p>
+<pre><code>type T1 struct{}
+type T2 = T1</code></pre>
+<p>这里的 T2 相当于 T1 的别名，但在 Go 语言标准库的 reflect（反射）包识别 T2 的原始类型时，会将它识别为 Struct 类型，而无法将它识别为 Alias 类型，原因是，Alias 类型在运行时是不可见的。由于 gengo 依赖于 go/types 的 Named 类型，所以要让 Alias 类型在运行时可被识别，在声明时将 TypeName 对象绑定到 Named 类型即可。</p>
+<h4 id="DeclarationOf（声明类型）"><a href="#DeclarationOf（声明类型）" class="headerlink" title="DeclarationOf（声明类型）"></a>DeclarationOf（声明类型）</h4><p>它并不是严格意义上的类型，它是声明过的函数、全局变量、或常量，但未被引用过。</p>
+<h4 id="Unknown（未知类型）"><a href="#Unknown（未知类型）" class="headerlink" title="Unknown（未知类型）"></a>Unknown（未知类型）</h4><p>当对象匹配不到以上所有类型的时候，它就是 Unknwn 类型的。</p>
+<h4 id="Unsupported（未支持类型）"><a href="#Unsupported（未支持类型）" class="headerlink" title="Unsupported（未支持类型）"></a>Unsupported（未支持类型）</h4><p>当对象属于 Unkonwn 类型时，则会设置对象为 Unsupported 类型，并在其使用过程中报错。</p>
+<h4 id="Protobuf（Protobuf-类型）"><a href="#Protobuf（Protobuf-类型）" class="headerlink" title="Protobuf（Protobuf 类型）"></a>Protobuf（Protobuf 类型）</h4><p>由 go-to-protobuf 代码生成器单独处理的类型。</p>
+<h3 id="代码生成"><a href="#代码生成" class="headerlink" title="代码生成"></a>代码生成</h3><p>Kubernetes 代码生成器生成的是 Go 语言代码。</p>
+<p>Generator 接口字段说明如下：</p>
+<blockquote>
+<p>位于 vendor/k8s.io/gengo/generator/generator.go 中</p>
+</blockquote>
+<ul>
+<li>Name: 代码生成器的名称，返回值为生成的目标代码文件名的前缀，例如 deepcopy-gen 的前缀为 zz_generated.deepcopy</li>
+<li>Filter: 类型过滤器，过滤掉不符合当前代码生成器所需的类型</li>
+<li>Namers: 命名管理器，支出创建不同类型的名称。例如，根据类型生成名称</li>
+<li>Init: 代码生成器生成代码之前的初始化操作</li>
+<li>Finalize: 代码生成器生成代码之后的收尾操作</li>
+<li>PackageVars: 生成全局变量代码块，例如 var…</li>
+<li>PackageConsts: 生成常量代码块，例如 consts…</li>
+<li>GenerateType: 生成代码块，根据传入的类型生成代码</li>
+<li>Imports: 获得需要生成的 import 代码块</li>
+<li>Filename: 生成目标代码文件的全名，例如 deepcopy-gen 的 zz_generated.deepcopy.go</li>
+<li>FileType: 生成代码文件的类型<blockquote>
+<p>如果代码生成器没有实现某些方法，则继承默认代码生成器(DefaultGen)的方法</p>
+</blockquote>
+</li>
+</ul>
+<p>下面以 deepcopy-gen 代码生成器为例，其代码生成原理如下：</p>
+<p>首先通过 build.sh 脚本，手动构建 deepcopy-gen 代码生成器二进制文件，然后将需要生成的包 k8s.io/kubernetes/pkg/apis/abac/v1beta1 作为 deepcopy-gen 的输入源，并在内部进行一系列解析，最终通过 -O 参数生成名为 zz_generated.deepcopy.go 的代码文件,以下分步详解：</p>
+<ol>
+<li>实例化 generator.Packages 对象</li>
+</ol>
+<ul>
+<li>deepcopy-gen 代码生成器根据输入的包的目录路径（即输入源），实例化 generator.Packages 对象，根据 generator.Packages 结构生成代码；</li>
+<li>最主要的是 GeneratorFunc 定义了 Generator 接口的实现，</li>
+</ul>
+<ol start="2">
+<li>执行代码生成</li>
+</ol>
+<p>在 gengo 中，generator 定义代码生成器通用接口 Generator。通过 ExecutePackage 函数，调用不同代码生成器的 Generator 接口方法，并生成代码。</p>
+<p>ExecutePackage 代码生成执行流程：生成 Header 代码块 -&gt; 生成 Imports 代码块 -&gt; 生成 Vars 全局变量代码块 -&gt; 生成 Consts 常量代码块 -&gt; 生成 Body 代码块。最后，调用 assembler.AssembleFile 函数，将生成的代码块信息写入 zz_generated.deepcopy.go 文件，生成 pkg/apis/abac/v1beta1/zz_generated.deepcopy.go 代码结构。</p>
+
             </div>
             <hr/>
 
