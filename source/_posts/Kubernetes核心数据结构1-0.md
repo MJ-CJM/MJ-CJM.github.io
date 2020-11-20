@@ -125,3 +125,60 @@ type APIResource struct {
 * 资源的外部版本和内部版本是需要相互转换的，而用于转换的函数需要事先初始化到资源注册表（Scheme）中，多个外部版本之间的资源进行相互转换，都需要通过内部版本进行中转。**这也是 Kubernetes 能实现多资源版本转换的关键**
 
 * 资源的外部版本和内部版本的代码定义也不太一样，外部版本的资源需要对外暴露给用户请求的接口，所以资源代码定义了 JSON/Proto Tags，而内部版本的资源不对外暴露，所以没有任何 Tags 定义。
+
+### 资源代码定义
+
+Kubernetes 内部版本和外部版本的资源代码结构并不相同。
+
+* 资源的内部版本定义了所支持的资源类型（types.go）、资源验证方法（validation.go）、资源注册至资源注册表的方法（install/install.go）等。
+* 资源的外部版本定义了资源的转换方法（conversion.go）、资源的默认值（defaults.go）等。
+* 外部版本与内部版本资源类型相同，都通过 register.go 代码文件定义所属的资源组和资源版本，外部版本资源对象通过资源版本（Alpha、Beta、Stable）标识。
+
+### 将资源注册到资源注册表中
+
+在每一个 Kubernetes 资源组目录中，都拥有一个 install/install.go 代码文件，它负责将资源信息注册到资源注册表（Scheme）中。
+
+* legancyschema.Scheme 是 kube-apiserver 组件的全局资源注册表，kubernetes 的所有资源信息都交给资源注册表统一管理。
+
+* core.AddToScheme: 函数注册 core 资源组内部版本的资源。
+
+* v1.AddToScheme: 函数注册 core 资源组外部版本的资源。
+
+* scheme.SetVersionPriority: 函数注册资源组的版本顺序，如有多个资源版本，排在最前面的为资源首选版本。
+
+### 资源操作方法
+
+在 kubernetes 系统中，针对每一个资源都有一定的操作方法（即 Verbs）。
+
+* 目前支持8中操作：create, delete, deletecollection, get, list, patch, update, watch，这些操作可以分为四大类，分别属于对资源进行创建、删除、更新和查询。
+
+* 要了解一个资源对象拥有哪些可操作的方法，需要查看与存储相关联的源码包 registry。
+
+### 资源与命名空间
+
+kubernetes 系统中默认内置了4个命名空间，分别如下：
+* default: 默认的命名空间
+* kube-system: 所有由 kubernetes 系统创建的资源对象都会被分配给该命名空间
+* kube-public: 此命名空间下的资源对象可以被所有人访问
+* kube-node-lease: 此命名空间下存放来自节点的心跳记录
+* 决定资源对象属于哪个命名空间，可通过资源对象的 ObjectMeta.Namespace 描述。
+
+### 自定义资源
+
+开发者通过 CustomResourceDefinitions（CRD）可以实现自定义资源，并将之添加到 Kubernetes 系统中。
+
+kubernetes 资源可分为内置资源和自定义资源，它们都通过资源对象描述文件（Manifest File）进行定义。一个资源对象需要用5个字段来描述，这些字段定义在 YAML 或 JSON 文件中。
+
+* apiVersion: 指定创建资源对象的资源组和资源版本
+* kind: 指定创建资源对象的种类
+* metadata: 描述创建资源对象的元数据信息，例如名称、命名空间等。
+* spec: 包含有关资源对象的核心信息，包括资源状态、副本数量、环境变量、卷等信息。
+* status: 包含有关正在运行的资源对象的信息。
+
+## runtime.Object 类型基石
+
+kubernetes 上的所有资源对象实际上就是一种 Go 语言的 Struct 类型，相当于一种数据结构，它们都有一个共同的结构叫 runtime.Object。runtime.Object 被设计为 Interface 接口类型，作为资源对象的通用资源对象。
+> 例如： Pod 资源对象可以转换为 runtime.Object 通用资源对象，runtime.Object 通用资源对象也可以转换为 Pod 资源对象。
+
+
+
