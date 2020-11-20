@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>Kubernetes核心数据结构1.0</title>
+      <link href="kubernetes-he-xin-shu-ju-jie-gou-1-0/"/>
+      <url>kubernetes-he-xin-shu-ju-jie-gou-1-0/</url>
+      
+        <content type="html"><![CDATA[<h2 id="Group、Version、Resource核心数据结构"><a href="#Group、Version、Resource核心数据结构" class="headerlink" title="Group、Version、Resource核心数据结构"></a>Group、Version、Resource核心数据结构</h2><p>在整个 Kubernetes 体系架构中，资源是 Kubernetes 最重要的概念，它本质上是一个资源控制系统————注册、管理、调度资源并维护资源的状态。</p><p>Kubernetes 将资源进行分组和版本化，形成 Group、Version、Resource。具体机构图如下：</p><p><img src="../image/kubernetes%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84.jpg" alt="kubernetes核心数据结构图"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> Kubernetes源码解析 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Kubernetes </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Kubernetes构建过程1.0</title>
       <link href="kubernetes-gou-jian-guo-cheng/"/>
       <url>kubernetes-gou-jian-guo-cheng/</url>

@@ -6,7 +6,7 @@
   <link href="http://blog.mj-cjm.top/atom.xml" rel="self"/>
   
   <link href="http://blog.mj-cjm.top/"/>
-  <updated>2020-11-14T05:33:51.551Z</updated>
+  <updated>2020-11-20T01:48:09.739Z</updated>
   <id>http://blog.mj-cjm.top/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Kubernetes核心数据结构1.0</title>
+    <link href="http://blog.mj-cjm.top/kubernetes-he-xin-shu-ju-jie-gou-1-0/"/>
+    <id>http://blog.mj-cjm.top/kubernetes-he-xin-shu-ju-jie-gou-1-0/</id>
+    <published>2020-11-14T05:38:35.000Z</published>
+    <updated>2020-11-20T01:48:09.739Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;Group、Version、Resource核心数据结构&quot;&gt;&lt;a href=&quot;#Group、Version、Resource核心数据结构&quot; class=&quot;headerlink&quot;</summary>
+        
+      
+    
+    
+    
+    <category term="Kubernetes源码解析" scheme="http://blog.mj-cjm.top/categories/Kubernetes%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
+    
+    
+    <category term="Kubernetes" scheme="http://blog.mj-cjm.top/tags/Kubernetes/"/>
+    
+  </entry>
   
   <entry>
     <title>Kubernetes构建过程1.0</title>
