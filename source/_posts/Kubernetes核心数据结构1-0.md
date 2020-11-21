@@ -180,5 +180,36 @@ kubernetes 资源可分为内置资源和自定义资源，它们都通过资源
 kubernetes 上的所有资源对象实际上就是一种 Go 语言的 Struct 类型，相当于一种数据结构，它们都有一个共同的结构叫 runtime.Object。runtime.Object 被设计为 Interface 接口类型，作为资源对象的通用资源对象。
 > 例如： Pod 资源对象可以转换为 runtime.Object 通用资源对象，runtime.Object 通用资源对象也可以转换为 Pod 资源对象。
 
+ * runtime.object 提供了两个方法，分别是 GetObjectKind 和 DeepCopyObject。
+ 1. GetObjectKind: 设置并返回 GroupVersionKind
+ 2. DeepCopyObject: 用于深复制当前资源对象并返回
 
+* Kubernetes 的每一个资源对象都嵌入了 metav1.TypeMeta 类型，该类型实现了 GetObjectKind 方法
 
+ ```
+func main(){
+    pod := &core.Pod{
+        TypeMeta: metav1.TypeMeta{
+            Kind: "Pod",
+        },
+        ObjectMeta: metav1.ObjectMeta{
+            Labels: map[string]string{"name": "foo"}
+        },
+    }
+    // 首先实例化 pod 资源
+     
+     obj := runtime.Object(pod)
+     // 通过 runtime.Object 将 Pod 资源对象转换成通用资源对象
+     
+     pod2, ok := obj.(*core.Pod)
+     // 通过断言的方式，将 obj 通用资源转换成 Pod 资源对象
+     if !ok {
+         panic("unexpected")
+     }
+
+     if !reflect.DeepEqual(pod, pod2) {
+         panic("unexpected")
+     }
+     // 最终通过反射来验证转换前和转换后的资源对象是否相等
+}
+ ```
