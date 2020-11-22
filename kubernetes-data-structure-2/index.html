@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Kubernetes核心数据结构1.0, 云计算 边缘计算 MJ-CJM Kubernetes Docker">
+    <meta name="keywords" content="Kubernetes核心数据结构2.0, 云计算 边缘计算 MJ-CJM Kubernetes Docker">
     <meta name="description" content="南京邮电大学 | 边缘计算 | 研三">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>Kubernetes核心数据结构1.0 | MJ-CJM</title>
+    <title>Kubernetes核心数据结构2.0 | MJ-CJM</title>
     <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -314,12 +314,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/13.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/12.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">Kubernetes核心数据结构1.0</h1>
+                    <h1 class="description center-align post-title">Kubernetes核心数据结构2.0</h1>
                 </div>
             </div>
         </div>
@@ -461,7 +461,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-11-14
+                    2020-11-21
                 </div>
                 
 
@@ -477,194 +477,105 @@
         <hr class="clearfix">
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="Group、Version、Resource核心数据结构"><a href="#Group、Version、Resource核心数据结构" class="headerlink" title="Group、Version、Resource核心数据结构"></a>Group、Version、Resource核心数据结构</h2><p>在整个 Kubernetes 体系架构中，资源是 Kubernetes 最重要的概念，它本质上是一个资源控制系统————注册、管理、调度资源并维护资源的状态。</p>
-<p>Kubernetes 将资源进行分组和版本化，形成 Group、Version、Resource。具体机构图如下：</p>
-<p><img src="../image/kubernetes%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84.jpg" alt="kubernetes核心数据结构图"></p>
+                <h2 id="数据"><a href="#数据" class="headerlink" title="数据"></a>数据</h2><h3 id="结构化数据"><a href="#结构化数据" class="headerlink" title="结构化数据"></a>结构化数据</h3><p>预先知道数据结构的数据类型是结构化数据。要使用这种数据，需要创建一个 struct 数据结构，并且可以通过 Go 语言的 json 库进行反序列化操作。</p>
+<h3 id="非结构化数据"><a href="#非结构化数据" class="headerlink" title="非结构化数据"></a>非结构化数据</h3><p>无法预知数据结构的数据类型或属性名称不确定的数据类型是非结构化数据，其无法通过构建预定的 struct 数据结构来序列化或反序列化数据。</p>
+<p>可以通过如下结构来解决问题：</p>
+<pre><code>var result map[string]interface{}</code></pre>
+<blockquote>
+<p>interface {}类型对应值，可以是任何类型，使用 interface 字段时，通过 Go 语言断言的方式进行类型转换。</p>
+</blockquote>
+<pre><code>if description, ok := result["description"].(string); ok {
+    fmt.Println(description)
+}</code></pre>
+<h2 id="Scheme-资源注册表"><a href="#Scheme-资源注册表" class="headerlink" title="Scheme 资源注册表"></a>Scheme 资源注册表</h2><p>Kubernetes 系统拥有众多资源，每一种资源就是一个资源类型，这些资源类型需要有统一的注册、存储、查询、管理等机制。目前 Kubernetes 系统中的所有资源类型都已注册到 Scheme 资源注册表中，其是一个内存型的资源注册表。</p>
+<p>Scheme 资源注册表支持如下两种类型：</p>
 <ul>
-<li><p>部分资源同时会拥有自己的子资源，例如，Deployment 资源拥有 Status 子资源。</p>
+<li><p>UnversionedType: 无版本资源类型，这是早期 Kubernetes 系统中的概念，它主要应用于某些没有版本的资源类型，该类型的资源对象并不需要进行转换。</p>
 </li>
-<li><p>完整的表现形式为 <group>/<version>/<resource>/<subresource></subresource></resource></version></group></p>
-</li>
-<li><p>外部版本用于对外暴露给用户请求的接口所使用的资源对象。</p>
-</li>
-<li><p>内部版本不对外暴露，仅在 kubernetes api server 内部使用。</p>
-</li>
-<li><p>kubernetes 的每个资源可使用 metav1.APIResource 结构进行描述，它描述资源的基本信息，例如资源名称，资源所属 命名空间，资源种类，资源可操作的方法列表。</p>
+<li><p>KnownType: 目前 Kubernetes 最常用的资源类型，也可称其为“拥有版本的资源类型”。</p>
 </li>
 </ul>
-<pre><code>resourceList := []*metav1.APIResourceList{
-    {
-        GroupVersion: "v1",
-        APIResources: []metav1.APIResource{
-            {
-                Name: "pods", # 资源不存在资源组时
-                Namespaced: true,
-                Kind: "Pod",
-                Verbs: []string{"get", "list", "delete", "deletecollection", "create", "update", "patch", "watch"},
-            },
-            {
-                Name: "services",
-                Namespaced: true,
-                Kind: "Service",
-                Verbs: []string{"get", "list", "delete", "deletecollection", "create", "update", "patch", "watch"},
-            },
-        },
-    },
-    {
-        GroupVersion: "apps/v1", # 同时存在资源组和版本
-        APIResources: []metav1.APIResource{
-            {
-                Name: "deployments",
-                Namespaced: true,
-                Kind: "Deployment",
-                Verbs: []string{"get", "list", "delete", "deletecollection", "create", "update", "patch", "watch"},
-            },
-        },
+<h3 id="Scheme-资源注册表数据结构"><a href="#Scheme-资源注册表数据结构" class="headerlink" title="Scheme 资源注册表数据结构"></a>Scheme 资源注册表数据结构</h3><p>Scheme 资源注册表数据结构主要由4个map结构组成，分别是：</p>
+<pre><code>type Scheme struct {
+    gvkToType map[scheme.GroupVersionKind]reflect.Type
+    // 存储 GVK 与 Type 的映射关系
+
+    typeToGVK map[reflect.Type][]scheme.GroupVersionKind
+    // 存储 Type 与 GVK 的映射关系，一个 Type 会对应一个或多个 GVK
+
+    unversionedTypes map[reflect.Type]scheme.GroupVersionKind
+    // 存储 UnversionedType 与 GVK 的映射关系
+
+    unversionedKinds map[string]reflect.Type
+    // 存储 Kind 名称与 UnversionedType 的映射关系 
+}</code></pre>
+<blockquote>
+<p>这些映射关系可以实现高效的正向和反向检索。</p>
+</blockquote>
+<p>Scheme 资源注册表在 Kubernetes 系统体系中属于非常核心的数据结构，Scheme Example 代码示例如下：</p>
+<pre><code>func main() {
+    // KnownType external
+    coreGV := schema.GroupVersion{Group:"", Version: "v1"}
+    extensionsGV := schema.GroupVersion{Group: "extensions", Version: "v1beta1"}
+
+    // KnownType internal
+    coreInternalGV := schema.GroupVersion{Group: "", Version: runtime.APIVersionInternal}
+
+    // UnversionedType 
+    Unversioned := schema.GroupVersion{Group: "", Version: "v1"}
+
+    schema := runtime.NewScheme()
+    scheme.AddKnownTypes(coreGV, &amp;corev1.Pod{})
+    scheme.AddKnownTypes(extensionsGV, &amp;appsv1.DaemonSet{})
+    scheme.AddKnownTypes(coreInternalGV, &amp;corev1.Pod{})
+    scheme.AddUnversionedTypes(Unversioned, &amp;metav1.Status{})
+    // 注册资源类型到 Scheme 资源注册表有以上两种方式
+}</code></pre>
+<ul>
+<li><p>GVK 在 Scheme 资源注册表中以 <group>/<version>,Kind=<kind>的形式存在，其中对于 Kind 字段，在注册时如果不指定该字段的名称，那么默认使用类型的名称，通过 reflect 机制获取资源类型的名称。</kind></version></group></p>
+</li>
+<li><p>资源类型在 Scheme 资源注册表中以 Go Type（通过 reflect 机制获取）形式存在。</p>
+</li>
+</ul>
+<blockquote>
+<p>需要注意的是，UnversionecdType 类型的对象在通过 scheme.AddUnversionedTypes 方法注册时，会同时存在4个 map 结构中，代码示例如下：</p>
+</blockquote>
+<pre><code>func (s *Scheme) AddUnversionedTypes(version schema.GroupVersion, types ...Object) {
+    ...
+    s.AddKnownTypes(version, types...)
+    // 1
+    for _, obj := range types {
+        t := reflect.TypeOf(obj).Elem()
+        gvk := version.WithKind(t.Name())
+        // 2
+        s.unversionedTypes[t] = gvk
+        // 3
+        ...
+        s.unversionedKinds[gvk.Kind] = t
+        // 4
     }
 }</code></pre>
-<blockquote>
-<p>可以通过 Group、Version、Resource 结构来明确标识一个资源的资源组名称，资源版本及资源名称。简称 GVR。<br>常见的资源结构如下： GVR, GV, GR, GVK, GV, GK, GVS。</p>
-</blockquote>
-<h2 id="Group"><a href="#Group" class="headerlink" title="Group"></a>Group</h2><pre><code>type APIGroup struct {
-    Name string
-    // 资源组名称
-    Versions []GroupVersionForDiscovery
-    // 资源组下所支持的资源组版本
-    PreferredVersion GroupVersionForDiscovery
-    // 首选版本
+<h3 id="资源注册表注册方法"><a href="#资源注册表注册方法" class="headerlink" title="资源注册表注册方法"></a>资源注册表注册方法</h3><p>在 Scheme 资源注册表中，不同的资源类型使用的注册方法不同，分别如下：</p>
+<ul>
+<li>scheme.AddUnversionedTypes: 注册 UnversionedType 资源类型</li>
+<li>scheme.AddKnownTypes: 注册 KnownType 资源类型</li>
+<li>scheme.AddKnownTypesWithName: 注册 KnownType 资源类型，须指定资源的 Kind 资源种类名称</li>
+</ul>
+<p>举例 scheme.AddKnownTypes 如下:</p>
+<pre><code>func (s *Scheme) AddKnownTypes(gv schema.GroupVersion,types ...object){
+    s.addObservedVersion(gv)
+    for _, obj := range types {
+        t := reflect.Typeof(obj)
+        // 通过 reflect 机制获取资源类型的名称作为资源种类名称
+        if t.Kind() != reflect.Ptr {
+            panic("All types must be pointers to structs.")
+        }
+        t = t.Elem()
+        s.AddKnownTypeWithName(gv.WithKind(t.Name()), obj)
+        // 调用这种注册方法
+    }
 }</code></pre>
-<ul>
-<li><p>拥有组名的资源组：其表现形式为 <group>/<version>/<resouce></resouce></version></group></p>
-<blockquote>
-<p>拥有组名的资源组的 HTTP PATH 以 /apis 为前缀，其表现形式为 /apis/<group>/<version>/<resource> </resource></version></group></p>
-</blockquote>
-</li>
-<li><p>没有组名的资源组：被称为 Core Groups（即核心资源组）或 Legacy Groups，也可能被称为 GroupLess （即无组），其表现形式为 <version>/<resouce></resouce></version></p>
-<blockquote>
-<p>没有组名的资源组的 HTTP PATH 以 /api 为前缀，其表现形式为 /api/<version>/<resource></resource></version></p>
-</blockquote>
-</li>
-</ul>
-<h2 id="Version"><a href="#Version" class="headerlink" title="Version"></a>Version</h2><p>分为三种版本，依次迭代顺序为 Alpha -&gt; Beta -&gt; Stable</p>
-<pre><code>type APIVersions struct {
-    Versions []string
-}
-// Versions: 所支持的资源版本列表</code></pre>
-<h2 id="Resource"><a href="#Resource" class="headerlink" title="Resource"></a>Resource</h2><p>一个资源被实例化后会表达为一个资源对象（即 Resource Object），所有资源对象都是 Entity（实体）。</p>
-<p>Kubernetes 目前支持的两种实体：</p>
-<ul>
-<li>持久性实体（Persistent Entity）:在资源对象被创建够， Kubernetes 会持久确保该资源对象存在。大部分对象属于持久性实体，例如 Deployment 资源对象。</li>
-<li>短暂性实体（Ephemeral Entity）:在资源对象被创建后，如果出现故障或调度失败，不会重新创建该资源对象，例如 Pod 资源对象。</li>
-</ul>
-<pre><code>type APIResource struct {
-    Name string
-    // 资源名称
-    SingularName string
-    // 资源的单数名称，它必须由小写字母组成，默认使用资源种类的小写形式进行命名。
-    Namespaced bool
-    // 资源是否拥有所属命名空间
-    Group string
-    Version string
-    Kind string
-    Verbs Verbs
-    ShortNames []string
-    // 资源的简称
-}</code></pre>
-<h3 id="资源外部版本和内部版本"><a href="#资源外部版本和内部版本" class="headerlink" title="资源外部版本和内部版本"></a>资源外部版本和内部版本</h3><ul>
-<li><p>External Object: 外部版本用于对外暴露给用户请求的接口所使用的资源对象，用户通过 YAML/JSON 格式的描述文件创建资源对象时，所使用的是外部版本的资源对象，外部版本的资源对象通过资源版本（Alpha, Beta, Stable）进行标识。</p>
-</li>
-<li><p>Internal Object: 内部版本不对外暴露，仅在 kubernetes api server 内部使用，内部版本用于多资源版本的转换。内部版本资源对象通过 runtime.APIVersionInternal (即_internal)进行标识。</p>
-<blockquote>
-<p>资源版本（如 v1beta1,v1等）与外部版本/内部版本概念不同，拥有资源版本的资源属于外部资源，拥有 runtime.APIVersionInternal 标识的资源属于内部版本</p>
-</blockquote>
-</li>
-<li><p>资源的外部版本和内部版本是需要相互转换的，而用于转换的函数需要事先初始化到资源注册表（Scheme）中，多个外部版本之间的资源进行相互转换，都需要通过内部版本进行中转。<strong>这也是 Kubernetes 能实现多资源版本转换的关键</strong></p>
-</li>
-<li><p>资源的外部版本和内部版本的代码定义也不太一样，外部版本的资源需要对外暴露给用户请求的接口，所以资源代码定义了 JSON/Proto Tags，而内部版本的资源不对外暴露，所以没有任何 Tags 定义。</p>
-</li>
-</ul>
-<h3 id="资源代码定义"><a href="#资源代码定义" class="headerlink" title="资源代码定义"></a>资源代码定义</h3><p>Kubernetes 内部版本和外部版本的资源代码结构并不相同。</p>
-<ul>
-<li>资源的内部版本定义了所支持的资源类型（types.go）、资源验证方法（validation.go）、资源注册至资源注册表的方法（install/install.go）等。</li>
-<li>资源的外部版本定义了资源的转换方法（conversion.go）、资源的默认值（defaults.go）等。</li>
-<li>外部版本与内部版本资源类型相同，都通过 register.go 代码文件定义所属的资源组和资源版本，外部版本资源对象通过资源版本（Alpha、Beta、Stable）标识。</li>
-</ul>
-<h3 id="将资源注册到资源注册表中"><a href="#将资源注册到资源注册表中" class="headerlink" title="将资源注册到资源注册表中"></a>将资源注册到资源注册表中</h3><p>在每一个 Kubernetes 资源组目录中，都拥有一个 install/install.go 代码文件，它负责将资源信息注册到资源注册表（Scheme）中。</p>
-<ul>
-<li><p>legancyschema.Scheme 是 kube-apiserver 组件的全局资源注册表，kubernetes 的所有资源信息都交给资源注册表统一管理。</p>
-</li>
-<li><p>core.AddToScheme: 函数注册 core 资源组内部版本的资源。</p>
-</li>
-<li><p>v1.AddToScheme: 函数注册 core 资源组外部版本的资源。</p>
-</li>
-<li><p>scheme.SetVersionPriority: 函数注册资源组的版本顺序，如有多个资源版本，排在最前面的为资源首选版本。</p>
-</li>
-</ul>
-<h3 id="资源操作方法"><a href="#资源操作方法" class="headerlink" title="资源操作方法"></a>资源操作方法</h3><p>在 kubernetes 系统中，针对每一个资源都有一定的操作方法（即 Verbs）。</p>
-<ul>
-<li><p>目前支持8中操作：create, delete, deletecollection, get, list, patch, update, watch，这些操作可以分为四大类，分别属于对资源进行创建、删除、更新和查询。</p>
-</li>
-<li><p>要了解一个资源对象拥有哪些可操作的方法，需要查看与存储相关联的源码包 registry。</p>
-</li>
-</ul>
-<h3 id="资源与命名空间"><a href="#资源与命名空间" class="headerlink" title="资源与命名空间"></a>资源与命名空间</h3><p>kubernetes 系统中默认内置了4个命名空间，分别如下：</p>
-<ul>
-<li>default: 默认的命名空间</li>
-<li>kube-system: 所有由 kubernetes 系统创建的资源对象都会被分配给该命名空间</li>
-<li>kube-public: 此命名空间下的资源对象可以被所有人访问</li>
-<li>kube-node-lease: 此命名空间下存放来自节点的心跳记录</li>
-<li>决定资源对象属于哪个命名空间，可通过资源对象的 ObjectMeta.Namespace 描述。</li>
-</ul>
-<h3 id="自定义资源"><a href="#自定义资源" class="headerlink" title="自定义资源"></a>自定义资源</h3><p>开发者通过 CustomResourceDefinitions（CRD）可以实现自定义资源，并将之添加到 Kubernetes 系统中。</p>
-<p>kubernetes 资源可分为内置资源和自定义资源，它们都通过资源对象描述文件（Manifest File）进行定义。一个资源对象需要用5个字段来描述，这些字段定义在 YAML 或 JSON 文件中。</p>
-<ul>
-<li>apiVersion: 指定创建资源对象的资源组和资源版本</li>
-<li>kind: 指定创建资源对象的种类</li>
-<li>metadata: 描述创建资源对象的元数据信息，例如名称、命名空间等。</li>
-<li>spec: 包含有关资源对象的核心信息，包括资源状态、副本数量、环境变量、卷等信息。</li>
-<li>status: 包含有关正在运行的资源对象的信息。</li>
-</ul>
-<h2 id="runtime-Object-类型基石"><a href="#runtime-Object-类型基石" class="headerlink" title="runtime.Object 类型基石"></a>runtime.Object 类型基石</h2><p>kubernetes 上的所有资源对象实际上就是一种 Go 语言的 Struct 类型，相当于一种数据结构，它们都有一个共同的结构叫 runtime.Object。runtime.Object 被设计为 Interface 接口类型，作为资源对象的通用资源对象。</p>
-<blockquote>
-<p>例如： Pod 资源对象可以转换为 runtime.Object 通用资源对象，runtime.Object 通用资源对象也可以转换为 Pod 资源对象。</p>
-</blockquote>
-<ul>
-<li>runtime.object 提供了两个方法，分别是 GetObjectKind 和 DeepCopyObject。</li>
-</ul>
-<ol>
-<li>GetObjectKind: 设置并返回 GroupVersionKind</li>
-<li>DeepCopyObject: 用于深复制当前资源对象并返回</li>
-</ol>
-<ul>
-<li><p>Kubernetes 的每一个资源对象都嵌入了 metav1.TypeMeta 类型，该类型实现了 GetObjectKind 方法</p>
-<pre><code>func main(){
-  pod := &amp;core.Pod{
-      TypeMeta: metav1.TypeMeta{
-          Kind: "Pod",
-      },
-      ObjectMeta: metav1.ObjectMeta{
-          Labels: map[string]string{"name": "foo"}
-      },
-  }
-  // 首先实例化 pod 资源
-
-   obj := runtime.Object(pod)
-   // 通过 runtime.Object 将 Pod 资源对象转换成通用资源对象
-
-   pod2, ok := obj.(*core.Pod)
-   // 通过断言的方式，将 obj 通用资源转换成 Pod 资源对象
-   if !ok {
-       panic("unexpected")
-   }
-
-   if !reflect.DeepEqual(pod, pod2) {
-       panic("unexpected")
-   }
-   // 最终通过反射来验证转换前和转换后的资源对象是否相等
-}</code></pre>
-</li>
-</ul>
-
+<h2 id="Codec-编解码器"><a href="#Codec-编解码器" class="headerlink" title="Codec 编解码器"></a>Codec 编解码器</h2>
             </div>
             <hr/>
 
@@ -689,7 +600,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://blog.mj-cjm.top/kubernetes-he-xin-shu-ju-jie-gou-1-0/">http://blog.mj-cjm.top/kubernetes-he-xin-shu-ju-jie-gou-1-0/</a>
+                    <a href="http://blog.mj-cjm.top/kubernetes-data-structure-2/">http://blog.mj-cjm.top/kubernetes-data-structure-2/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -1035,9 +946,10 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
                 <a href="/kubernetes-data-structure-2/">
                     <div class="card-image">
@@ -1055,9 +967,9 @@
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2020-11-21
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-11-21
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -1070,6 +982,7 @@
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -1088,13 +1001,13 @@
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/kubernetes-gou-jian-guo-cheng/">
+                <a href="/kubernetes-he-xin-shu-ju-jie-gou-1-0/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/11.jpg" class="responsive-img" alt="Kubernetes构建过程1.0">
+                        <img src="/medias/featureimages/13.jpg" class="responsive-img" alt="Kubernetes核心数据结构1.0">
                         
-                        <span class="card-title">Kubernetes构建过程1.0</span>
+                        <span class="card-title">Kubernetes核心数据结构1.0</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -1105,7 +1018,7 @@
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-11-12
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-11-14
                             </span>
                         <span class="publish-author">
                             
