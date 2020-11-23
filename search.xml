@@ -22,6 +22,8 @@
             
             <tag> Kubernetes </tag>
             
+            <tag> Kubernetes数据结构 </tag>
+            
         </tags>
       
     </entry>
@@ -47,6 +49,8 @@
             
             <tag> Kubernetes </tag>
             
+            <tag> Kubernetes数据结构 </tag>
+            
         </tags>
       
     </entry>
@@ -54,7 +58,7 @@
     
     
     <entry>
-      <title>Kubernetes构建过程1.0</title>
+      <title>Kubernetes构建过程</title>
       <link href="kubernetes-gou-jian-guo-cheng/"/>
       <url>kubernetes-gou-jian-guo-cheng/</url>
       
@@ -71,6 +75,8 @@
         <tags>
             
             <tag> Kubernetes </tag>
+            
+            <tag> Kubernetes构建 </tag>
             
         </tags>
       
@@ -96,6 +102,8 @@
         <tags>
             
             <tag> Kubernetes </tag>
+            
+            <tag> Kubernetes架构 </tag>
             
         </tags>
       
