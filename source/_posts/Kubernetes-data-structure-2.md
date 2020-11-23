@@ -1,7 +1,7 @@
 ---
 title: Kubernetes核心数据结构2.0
 date: 2020-11-21 20:45:48
-tags: Kubernetes
+tags: [Kubernetes, Kubernetes数据结构]
 categories: Kubernetes源码解析
 ---
 

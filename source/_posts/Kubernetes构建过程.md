@@ -1,7 +1,7 @@
 ---
-title: Kubernetes构建过程1.0
+title: Kubernetes构建过程
 date: 2020-11-12 10:34:42
-tags: Kubernetes
+tags: [Kubernetes, Kubernetes构建]
 categories: Kubernetes源码解析
 ---
 

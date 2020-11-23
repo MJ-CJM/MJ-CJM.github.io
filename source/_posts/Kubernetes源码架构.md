@@ -1,7 +1,7 @@
 ---
 title: Kubernetes源码架构
 date: 2020-11-11 10:48:44
-tags: Kubernetes
+tags: [Kubernetes, Kubernetes架构]
 categories: Kubernetes源码解析
 ---
 
