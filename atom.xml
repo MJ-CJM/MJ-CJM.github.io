@@ -6,7 +6,7 @@
   <link href="http://blog.mj-cjm.top/atom.xml" rel="self"/>
   
   <link href="http://blog.mj-cjm.top/"/>
-  <updated>2020-11-23T13:25:24.140Z</updated>
+  <updated>2020-11-25T09:31:43.200Z</updated>
   <id>http://blog.mj-cjm.top/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>kubectl 命令行交互</title>
+    <link href="http://blog.mj-cjm.top/kubectl-commands/"/>
+    <id>http://blog.mj-cjm.top/kubectl-commands/</id>
+    <published>2020-11-24T02:04:56.000Z</published>
+    <updated>2020-11-25T09:31:43.200Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;从 Kubernetes 架构设计的角度来看，kubectl 工具是 Kubernetes API Server 的客户端。一些命令可以自行查阅。&lt;/p&gt;
+&lt;h2 id=&quot;Cobra-命令行参数解析&quot;&gt;&lt;a href=&quot;#Cobra-命令行参数解析&quot;</summary>
+        
+      
+    
+    
+    
+    <category term="Kubernetes源码解析" scheme="http://blog.mj-cjm.top/categories/Kubernetes%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
+    
+    
+    <category term="Kubernetes" scheme="http://blog.mj-cjm.top/tags/Kubernetes/"/>
+    
+    <category term="kubectl 命令行交互" scheme="http://blog.mj-cjm.top/tags/kubectl-%E5%91%BD%E4%BB%A4%E8%A1%8C%E4%BA%A4%E4%BA%92/"/>
+    
+  </entry>
   
   <entry>
     <title>Kubernetes核心数据结构2.0</title>

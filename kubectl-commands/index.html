@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Kubernetes核心数据结构2.0, 云计算 边缘计算 MJ-CJM Kubernetes Docker">
+    <meta name="keywords" content="kubectl 命令行交互, 云计算 边缘计算 MJ-CJM Kubernetes Docker">
     <meta name="description" content="南京邮电大学 | 边缘计算 | 研三">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>Kubernetes核心数据结构2.0 | MJ-CJM</title>
+    <title>kubectl 命令行交互 | MJ-CJM</title>
     <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -314,12 +314,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/12.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/9.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">Kubernetes核心数据结构2.0</h1>
+                    <h1 class="description center-align post-title">kubectl 命令行交互</h1>
                 </div>
             </div>
         </div>
@@ -440,8 +440,8 @@
                                 <span class="chip bg-color">Kubernetes</span>
                             </a>
                         
-                            <a href="/tags/Kubernetes%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
-                                <span class="chip bg-color">Kubernetes数据结构</span>
+                            <a href="/tags/kubectl-%E5%91%BD%E4%BB%A4%E8%A1%8C%E4%BA%A4%E4%BA%92/">
+                                <span class="chip bg-color">kubectl 命令行交互</span>
                             </a>
                         
                     </div>
@@ -465,7 +465,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-11-21
+                    2020-11-24
                 </div>
                 
 
@@ -481,322 +481,110 @@
         <hr class="clearfix">
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="数据"><a href="#数据" class="headerlink" title="数据"></a>数据</h2><h3 id="结构化数据"><a href="#结构化数据" class="headerlink" title="结构化数据"></a>结构化数据</h3><p>预先知道数据结构的数据类型是结构化数据。要使用这种数据，需要创建一个 struct 数据结构，并且可以通过 Go 语言的 json 库进行反序列化操作。</p>
-<h3 id="非结构化数据"><a href="#非结构化数据" class="headerlink" title="非结构化数据"></a>非结构化数据</h3><p>无法预知数据结构的数据类型或属性名称不确定的数据类型是非结构化数据，其无法通过构建预定的 struct 数据结构来序列化或反序列化数据。</p>
-<p>可以通过如下结构来解决问题：</p>
-<pre><code>var result map[string]interface{}</code></pre>
-<blockquote>
-<p>interface {}类型对应值，可以是任何类型，使用 interface 字段时，通过 Go 语言断言的方式进行类型转换。</p>
-</blockquote>
-<pre><code>if description, ok := result["description"].(string); ok {
-    fmt.Println(description)
-}</code></pre>
-<h2 id="Scheme-资源注册表"><a href="#Scheme-资源注册表" class="headerlink" title="Scheme 资源注册表"></a>Scheme 资源注册表</h2><p>Kubernetes 系统拥有众多资源，每一种资源就是一个资源类型，这些资源类型需要有统一的注册、存储、查询、管理等机制。目前 Kubernetes 系统中的所有资源类型都已注册到 Scheme 资源注册表中，其是一个内存型的资源注册表。</p>
-<p>Scheme 资源注册表支持如下两种类型：</p>
-<ul>
-<li><p>UnversionedType: 无版本资源类型，这是早期 Kubernetes 系统中的概念，它主要应用于某些没有版本的资源类型，该类型的资源对象并不需要进行转换。</p>
-</li>
-<li><p>KnownType: 目前 Kubernetes 最常用的资源类型，也可称其为“拥有版本的资源类型”。</p>
-</li>
-</ul>
-<h3 id="Scheme-资源注册表数据结构"><a href="#Scheme-资源注册表数据结构" class="headerlink" title="Scheme 资源注册表数据结构"></a>Scheme 资源注册表数据结构</h3><p>Scheme 资源注册表数据结构主要由4个map结构组成，分别是：</p>
-<pre><code>type Scheme struct {
-    gvkToType map[scheme.GroupVersionKind]reflect.Type
-    // 存储 GVK 与 Type 的映射关系
-
-    typeToGVK map[reflect.Type][]scheme.GroupVersionKind
-    // 存储 Type 与 GVK 的映射关系，一个 Type 会对应一个或多个 GVK
-
-    unversionedTypes map[reflect.Type]scheme.GroupVersionKind
-    // 存储 UnversionedType 与 GVK 的映射关系
-
-    unversionedKinds map[string]reflect.Type
-    // 存储 Kind 名称与 UnversionedType 的映射关系 
-}</code></pre>
-<blockquote>
-<p>这些映射关系可以实现高效的正向和反向检索。</p>
-</blockquote>
-<p>Scheme 资源注册表在 Kubernetes 系统体系中属于非常核心的数据结构，Scheme Example 代码示例如下：</p>
+                <p>从 Kubernetes 架构设计的角度来看，kubectl 工具是 Kubernetes API Server 的客户端。一些命令可以自行查阅。</p>
+<h2 id="Cobra-命令行参数解析"><a href="#Cobra-命令行参数解析" class="headerlink" title="Cobra 命令行参数解析"></a>Cobra 命令行参数解析</h2><p>Cobra 是一个创建强大的现代化 CLI 命令行应用程序的 Go 语言库，可以用来生成应用程序的文件。</p>
+<p>Cobra Example:</p>
 <pre><code>func main() {
-    // KnownType external
-    coreGV := schema.GroupVersion{Group:"", Version: "v1"}
-    extensionsGV := schema.GroupVersion{Group: "extensions", Version: "v1beta1"}
+    var Version bool
+    var rootCmd = &amp;cobra.Command{
+        Use: "root[sub]",
+        Short: "root command",
+        Run: func(cmd *cobra.Command, args []string) {
+            fmt.Printf("Inside rootCmd Run with args: %v\n", args)
+            if Version {
+                fmt.Printf("Version: 1.0\n")
+            }
+        },
+    }
 
-    // KnownType internal
-    coreInternalGV := schema.GroupVersion{Group: "", Version: runtime.APIVersionInternal}
-
-    // UnversionedType 
-    Unversioned := schema.GroupVersion{Group: "", Version: "v1"}
-
-    schema := runtime.NewScheme()
-    scheme.AddKnownTypes(coreGV, &amp;corev1.Pod{})
-    scheme.AddKnownTypes(extensionsGV, &amp;appsv1.DaemonSet{})
-    scheme.AddKnownTypes(coreInternalGV, &amp;corev1.Pod{})
-    scheme.AddUnversionedTypes(Unversioned, &amp;metav1.Status{})
-    // 注册资源类型到 Scheme 资源注册表有以上两种方式
+    flags := rootCmd.Flags()
+    flags.BoolVarP(&amp;Version, "version", "v", false, "Print version information and quit")
+    _ = rootCmd.Execute()
 }</code></pre>
+<p>由此可知 Cobra 基本应用步骤分为如下 3 步：</p>
+<ol>
+<li>创建 rootCmd 主命令，并定义 Run 执行函数，也可以通过 rootCmd.AddCommand 方法添加子命令。</li>
+<li>为命令添加命令行参数。</li>
+<li>执行 rootCmd 命令调用的函数，rootCmd.Execute 会在内部回调 Run 执行函数。</li>
+</ol>
+<p>Kubernetes 核心组件都通过 Cobra 来管理 CLI 交互方式，<br>下面以 kubectl 为例：</p>
+<pre><code>kubectl    get   pod  pod_name  -n kube-system
+App Name/Command/Type/  Name  / Flag</code></pre>
 <ul>
-<li><p>GVK 在 Scheme 资源注册表中以 <group>/<version>,Kind=<kind>的形式存在，其中对于 Kind 字段，在注册时如果不指定该字段的名称，那么默认使用类型的名称，通过 reflect 机制获取资源类型的名称。</kind></version></group></p>
-</li>
-<li><p>资源类型在 Scheme 资源注册表中以 Go Type（通过 reflect 机制获取）形式存在。</p>
-</li>
+<li>Command: 指定命令操作，命令后可以加子命令。</li>
+<li>TYPE: 指定资源类型，资源类型不区分大小写。</li>
+<li>NAME: 指定资源名称，可以指定多个，资源名称需要区分大小写。</li>
+<li>Flag: 指定可选命令行参数</li>
 </ul>
-<blockquote>
-<p>需要注意的是，UnversionecdType 类型的对象在通过 scheme.AddUnversionedTypes 方法注册时，会同时存在4个 map 结构中，代码示例如下：</p>
-</blockquote>
-<pre><code>func (s *Scheme) AddUnversionedTypes(version schema.GroupVersion, types ...Object) {
+<p>同样是三步骤 1：创建 Command, 2: 为 get 命令添加命令行参数 3：执行命令</p>
+<h3 id="创建-Command"><a href="#创建-Command" class="headerlink" title="创建 Command"></a>创建 Command</h3><p>实例化 cobra.Command 对象，并通过 cmds.AddCommand 方法添加命令或子命令，每个 cobra.Command 对象都可设置 Run 执行函数，<br>代码示例如下：</p>
+<pre><code>func NewKubectlCommand(in io.Reader, out, err io.Writer)  *cobra.Command {
     ...
-    s.AddKnownTypes(version, types...)
-    // 1
-    for _, obj := range types {
-        t := reflect.TypeOf(obj).Elem()
-        gvk := version.WithKind(t.Name())
-        // 2
-        s.unversionedTypes[t] = gvk
-        // 3
+    groups := templates.CommandGroups{
         ...
-        s.unversionedKinds[gvk.Kind] = t
-        // 4
+        {
+            Message: "Basic Commands (Intermediate):",
+            Commands: []*cobra.Command{
+                explain.NewCmdExplain("kubectl", f, ioStreams),
+                get.NewCmdGet("kubectl", f, isStreams),
+                edit.NewCmdEdit(f, ioStreams),
+                delete.NewCmdDelete(f, ioStreams),
+            },
+        },
+        ...
     }
-}</code></pre>
-<h3 id="资源注册表注册方法"><a href="#资源注册表注册方法" class="headerlink" title="资源注册表注册方法"></a>资源注册表注册方法</h3><p>在 Scheme 资源注册表中，不同的资源类型使用的注册方法不同，分别如下：</p>
-<ul>
-<li>scheme.AddUnversionedTypes: 注册 UnversionedType 资源类型</li>
-<li>scheme.AddKnownTypes: 注册 KnownType 资源类型</li>
-<li>scheme.AddKnownTypesWithName: 注册 KnownType 资源类型，须指定资源的 Kind 资源种类名称</li>
-</ul>
-<p>举例 scheme.AddKnownTypes 如下:</p>
-<pre><code>func (s *Scheme) AddKnownTypes(gv schema.GroupVersion,types ...object){
-    s.addObservedVersion(gv)
-    for _, obj := range types {
-        t := reflect.Typeof(obj)
-        // 通过 reflect 机制获取资源类型的名称作为资源种类名称
-        if t.Kind() != reflect.Ptr {
-            panic("All types must be pointers to structs.")
-        }
-        t = t.Elem()
-        s.AddKnownTypeWithName(gv.WithKind(t.Name()), obj)
-        // 调用这种注册方法
-    }
-}</code></pre>
-<h2 id="Codec-编解码器"><a href="#Codec-编解码器" class="headerlink" title="Codec 编解码器"></a>Codec 编解码器</h2><ul>
-<li><p>Serializer: 序列化器，包含序列化操作与反序列化操作</p>
-</li>
-<li><p>Codec: 编解码器，包含编码器和解码器。</p>
-<blockquote>
-<p>编解码器指的是可以表示数据的任何格式，或者将数据转换为特定格式的过程。</p>
-</blockquote>
-</li>
-</ul>
-<pre><code>type Encoder interface{}
-// 编码器
-type Decoder interface{}
-// 解码器
-type Serializer interface{
-    Encoder
-    Decoder
-}
-// 只要实现了 Encoder 与 Decoder 方法的数据结构，就是序列化器
-type Codec Serialier</code></pre>
-<p>Codec 编解码器包含3中序列化器：</p>
-<ol>
-<li>jsonSerializer: JSON 格式序列化/反序列化器。</li>
-<li>yamlSerializer: YAML 格式序列化/反序列化器。</li>
-<li>protobufSerializer: Protobuf 格式序列化/反序列化器。<blockquote>
-<p>都使用 ContentType 作为标识。</p>
-</blockquote>
-</li>
-</ol>
-<h3 id="Codec-编解码实例化"><a href="#Codec-编解码实例化" class="headerlink" title="Codec 编解码实例化"></a>Codec 编解码实例化</h3><p>Codec 编解码器通过 NewCodecFactory 函数实例化，NewCodecFactory -&gt; newSerializersForSchem。<br>分别都是通过 json.NewSerializer/json.NewYAMLSerializer/protobuf.NewSerializer 函数进行实例化。</p>
-<h3 id="json-和-yaml-序列化器"><a href="#json-和-yaml-序列化器" class="headerlink" title="json 和 yaml 序列化器"></a>json 和 yaml 序列化器</h3><ul>
-<li><p>json 序列化器使用 Go 语言标准库 encoding/json 来实现序列化和反序列化。</p>
-</li>
-<li><p>yaml 序列化器使用第三方库 gopkg.in/yaml.v2 来实现序列化和反序列化。</p>
-</li>
-<li><p>json 和 yaml 序列化器共享同一个数据结构，通过 yaml 字段区分，如果该字段为 true 则使用 yaml 序列化器，否则为使用 json 序列化器。</p>
-</li>
-<li><p>如果是 yaml 格式，第一步通过 caseSensitiveJsonIterator.Marshal 函数将资源对象转换为 Json 格式，第二步通过 yaml.JSONToYAML 将 JSON 格式转换为 YAML 格式并返回数据。</p>
-</li>
-<li><p>如果是 JSON 格式，则通过 Go 语言标准库将资源对象转换为 JSON 格式。其中如果 pretty 参数开启的话，则通过 caseSensitiveJsonIterator.MarshalIndent 函数优化 JSON 格式。</p>
-<blockquote>
-<p>caseSensitiveJsonIterator 函数实际封装了 github.com/json-iterator/go 第三方库，json-iterator 有如下几个好处。</p>
-<ol>
-<li>json-iterator 支持区分大小写。</li>
-<li>json-iterator 性能更优。</li>
-<li>json-iterator 100% 兼容 Go 语言标准库。</li>
-</ol>
-</blockquote>
-</li>
-</ul>
-<h3 id="protobufSerializer-序列化器"><a href="#protobufSerializer-序列化器" class="headerlink" title="protobufSerializer 序列化器"></a>protobufSerializer 序列化器</h3><p>protobuf 序列化器使用 proto 库来实现序列化和反序列操作。</p>
-<ul>
-<li>前缀有 magic-number 特殊标识。</li>
-</ul>
-<h2 id="Converter-资源版本转换器"><a href="#Converter-资源版本转换器" class="headerlink" title="Converter 资源版本转换器"></a>Converter 资源版本转换器</h2><p>可以通过 kubectl convert 命令进行资源版本转换：</p>
-<pre><code>$ kubectl convert -f v1beta1Deployment.yaml --output-version=apps/v1
-apiVersion: apps/v1
-kind: Deployment </code></pre>
-<p>kubernetes 系统中一个资源支持多个资源版本，每个资源版本都支持其他资源版本的转换，随着资源版本的增加，资源版本转换的定义会越来越多，这样处理起来非常麻烦。<br>因此 kubernetes 通过内部版本机制实现资源版本转换。</p>
-<ul>
-<li>当需要在两个资源版本之间转换时，Converter 资源版本转换器先将第一个资源版本转换为 __internal 内部版本，再转换为相应的资源版本。</li>
-<li>每个资源只要能支持内部版本，就能与其他任何资源版本进行间接的资源版本转换。</li>
-</ul>
-<h3 id="Converter-转换器数据结构"><a href="#Converter-转换器数据结构" class="headerlink" title="Converter 转换器数据结构"></a>Converter 转换器数据结构</h3><p>Converter 转换器数据结构主要存放转换函数（即 Conversion Funcs）。</p>
-<pre><code>type Converter struct {
-    conversionFuncs          ConversionFuncs
-    // 默认转换函数
-    generatedConversionFuncs ConversionFuncs
-    // 自动生成的转换函数
-    ignoredConversions       map[typePair]stuct{}
-    // 若资源对象注册到此字段，则忽略此资源对象的转换操作
-    nameFunc                 func(t reflect.Type) string
-    // 在转换过程中其用于获取资源种类的名称
+    groups.Add(cmds)
     ...
-}
+    cmds.AddCommand(alpha)
+    cmds.AddCommand(cmdconfig.NewCmdConfig(f, clientcmd.NewDefaultPathOptions(), ioStreams))
+    cmds.AddCommand(plugin.NewCmdPlugin(f, ioStreams))
+    cmds.AddCommand(version.NewCmdVersion(f, ioStreams))
+    ...
 
-type ConversionFuncs struct {
-    fns     map[typePair]reflect.Value
-    untyped map[typePair]ConversionFunc
-}
-
-type typePair struct {
-    source reflect.Type
-    dest   reflect.Type
-}
-
-type ConversionFunc func(a, b interface{}, scope Scope) error
-// 将资源对象 a 转换为资源对象 b，scope 定义了多次转换机制。</code></pre>
-<h3 id="Converter-注册转换函数"><a href="#Converter-注册转换函数" class="headerlink" title="Converter 注册转换函数"></a>Converter 注册转换函数</h3><p>Converter 转换函数需要通过注册才能在 Kubernetes 内部使用，目前支持 5 个注册转换函数。</p>
-<ol>
-<li>注册忽略的资源类型。</li>
-<li>注册多个 Conversion Func 转换函数。</li>
-<li>注册单个 Conversion Func 转换函数。</li>
-<li>注册自动生成的转换函数。</li>
-<li>注册字段标签的转换函数。</li>
-</ol>
-<h3 id="Convert-资源版本转换原理"><a href="#Convert-资源版本转换原理" class="headerlink" title="Convert 资源版本转换原理"></a>Convert 资源版本转换原理</h3><p>Converter Example（将 Deployment 资源对象从 v1beta1 -&gt; v1） 代码示例如下：</p>
-<pre><code>func main() {
-    // 第一部分：实例化一个空的 Scheme 资源注册表，将 v1beta1、v1的资源版本及内部版本的 Deployment 资源注册到 Scheme 资源注册表中。
-    scheme := runtime.NewScheme()
-    scheme.AddKnownTypes(appsv1beta1.SchemeGroupVersion, &amp;appsv1beta1.Deployment{})
-    scheme.AddKnownTypes(appsv1.SchemeGroupVerison, &amp;appsv1.Deployment{})
-    scheme.AddKnownTypes(apps.SchemeGroupVersion, &amp;appsv1.Deployment{})
-    metav1.AddToGroupVersion(scheme, appsv1beta1.SchemeGroupVersion)
-    metav1.AddToGroupVersion(scheme, appsv1.SchemeGroupVersion)
-
-    // 第二部分：实例化 v1beta1Deployment 资源对象，
-    v1beta1Deployment := &amp;appsv1beta1.Deployment{
-        TypeMeta: metav1.TypeMeta{
-            Kind:       "Deployment",
-            APIVersion: "apps/v1beta1",
-        }
-    }
-
-    // 通过 scheme.ConvertToVersion 将其转换为内部版本
-    // v1beta1 -&gt; __internal
-    objInternal, err := scheme.ConvertToVersion(v1beta1Deployment, apps.SchemeGroupVersion)
-    if err != nil {
-        panic(err)
-    }
-    fmt.Println("GVK", objinternal.GetObjectKind().GroupVersionKind().String())
-    // output:
-    // GVK: /, Kind =
-
-    // 通过 scheme.ConvertToVersion 转换为目标资源版本，并通过断言的方式来判断是否转换成功。
-    // __internal -&gt; v1
-    objV1, err := scheme.ConvertToVersion(objInternal, appsv1.SchemeGroupVersion)
-    if err != nil {
-        panic(err)
-    }
-    v1Deployment, ok := objV1.(*appsV1.Deployment)
-    if !ok {
-        panic("Got wrong type")
-    }
-    fmtPrintln("GVK: ", v1Deployment.GetObjectKind().GroupVersionKind().String())
-    // output:
-    // GVK: apps/v1, Kind = Deployment 
+    return cmds
 }</code></pre>
-<p>Scheme 资源注册表可以通过两种方式进行版本转换：</p>
-<ol>
-<li>将传入的资源对象转换成目标资源版本之前，会将资源对象深复制一份后再执行转换操作，相当于安全的内存对象转换操作。</li>
-<li>在资源对象转换的过程中，不会深复制资源对象，而是直接对原资源对象进行转换操作，尽可能高效地实现转换，是非安全的内存对象转换操作。</li>
-</ol>
-<p>下面是 Converter 转换器流程：</p>
-<p><img src="../image/Converter%E8%BD%AC%E6%8D%A2%E5%99%A8.jpg" alt="Convert转换器流程图"></p>
-<ol>
-<li>获取传入的资源对象的反射类型</li>
-</ol>
-<p>因为在 Scheme 资源注册表中是以反射类型注册资源的</p>
-<pre><code>t = reflect.Typeof(in).Elem()</code></pre>
-<ol start="2">
-<li>从资源注册表中查找到传入的资源对象的 GVK </li>
-</ol>
-<pre><code>kinds, ok := s.typeToGVK[t]
-if !ok || len(kinds) == 0 {
-    return nil, NewNotRegisteredErrForType(s.schemeName, t)
+<p>NewKubectlCommand 函数实例化了 cobra.Command 对象，templates.CommandGroups 定义了 kubectl 的 8 种命令类别，通过 cmds.AddCommand 添加命令类别。<br>get 命令的 Command 定义如下：</p>
+<pre><code>func NewCmdGet (parent string, f cmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {
+    o := NewGetOptions(parent, streams)
+
+    cmd := &amp;cobra.Command {
+        Use: "get ...",
+        DisableFlagsInUseLine: true,
+        Short: ...
+        Long: ...
+        Example: getExample,
+        Run: func(cmd *cobra.Command, args []string) {
+            cmdutil.CheckErr(o.Complete(f, cmd, args))
+            cmdutil.CheckErr(o.Validate(cmd))
+            cmdutil.CheckErr(o.Run(f, cmd, args))
+        },
+        SuggestFor: []string{"list", "ps"},
+    }
+    ...
+} </code></pre>
+<p>在 cobra.Command 对象中， Use, Short, Long 和 Example 包含描述命令的信息，最重要的是定义 Run 执行函数，</p>
+<blockquote>
+<p>Cobra 中 Run 函数家族成员有很多，执行顺序有 PersistentPreRun -&gt; PreRun -&gt; Run -&gt; PostRun -&gt; PersistentPostRun。具体参考 cobra.Command 中的结构体定义。</p>
+</blockquote>
+<h3 id="为-get-命令添加命令行参数"><a href="#为-get-命令添加命令行参数" class="headerlink" title="为 get 命令添加命令行参数"></a>为 get 命令添加命令行参数</h3><p>get 命令行参数比较多，这里以 –all -namespaces 参数为例:</p>
+<pre><code>func NewCmdGet (parent string, f cmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {
+    ...
+    cmd.Flags().BoolVarP(&amp;o.AllNamespaces // 接受命令行参数的变量, "all-namespaces" // 指定命令行参数的名称, "A" // 指定命令行参数的名称简写, o.AllNamespaces // 设置命令行参数的默认值, "If present, list the requested object(s) across all namespqaces.Namespace in current context is ignored even if specified with --namespace." // 设置命令行参数的提示信息)
+    ...
 }</code></pre>
-<ol start="3">
-<li>从多个 GVK 中选出与目标资源对象相匹配的 GVK</li>
-</ol>
-<p>这里有个优缺点，转换过程是相对耗时的，大量的相同资源之间进行版本转换的耗时会比较长。因此如果目标资源对象的 GVK 在可转换的 GVK 列表中，则直接将传入的资源对象的 GVK 设置为目标资源对象的 GVK，而无须执行转换操作，缩短部分耗时。</p>
-<pre><code>gvk, ok := target.KindForGroupVersionKinds(kinds)
+<h3 id="执行命令"><a href="#执行命令" class="headerlink" title="执行命令"></a>执行命令</h3><pre><code>func main() {
+    command := cmd.NewDefaultKubectlCommand()
+    ...
+    if err := command.Execute(); err != nil {
+        fmt.Printf(os.Stderr, "%v\n", err)
+        os.Exit()
+    }
+}</code></pre>
+<p>kubectl 的 main 函数中定义了执行函数 command.Execute，原理是对命令中的所有参数解析出 Command 和 Flag，把 Flag 作为参数传递给 Command 并执行。</p>
+<pre><code>cmd, flags, err = c.Find(args)
 ...
-for _, kind := range kinds {
-    if gvk == kind {
-        retrurn copyAndSetTargetKind(copy, in, gvk)
-    }
-}</code></pre>
-<ol start="4">
-<li>判断传入的资源对象是否属于 Unversioned 类型</li>
-</ol>
-<p>属于该类型的资源对象并不需要进行转换操作，而是直接将传入的资源对象的 GVK 设置为目标资源对象的 GVK。</p>
-<pre><code>if unversionedKind, ok := s.unversionedTypes[t]; ok {
-    ...
-    return copyAndSetTargetKind(copy, in, unversionedKind)
-}</code></pre>
-<ol start="5">
-<li>执行转换操作</li>
-</ol>
-<p>在执行转换操作之前，先判断是否需要对传入的资源对象执行深复制操作，然后通过 s.converter.Convert 转换函数执行转换操作，代码示例如下：</p>
-<pre><code>if copy {
-    in = in.DeepCopyObject()
-}
-if err := s.converter.Convert(in, out, flags, meta); err != nil {
-    return nil, err
-}</code></pre>
-<p>实际的转换函数是通过 doConversion 函数执行的：</p>
-<pre><code>func (c *Converter) doConversion(src, dest interface{}, flags FieldMatchingFlags, meta *Meta, f conversionFunc) error {
-    pair := typePair{reflect.TypeOf(src), reflect.TypeOf(dest)}
-    ...
-    // 若在默认转换函数列表，查找出 pair 对应的转换函数执行并返回
-    if fn, ok := c.conversionFuncs.untyped[pair]; ok {
-        return fn(src, dest, scope)
-    }
-    // 若在自动生成的转换函数列表，查找出 pair 对应的转换函数执行并返回
-    if fn, ok := c.generatedConversionFuncs.untyped[pair]; ok {
-        return fn(src, dest, scope)
-    }
-
-    // 如果不在以上两个列表中，则使用 doConversion 函数传入的转换函数（即 f），调用 f 之前，需要将 src 与 dest 资源对象通过 EnforcePtr 函数取指针的值。
-    // 因为 doConversion 函数传入的转换函数接收的是非指针资源对象。
-    dv, err := EnforcePtr(dest)
-    sv, err := EnforcePtr(src)
-    ...
-    return f(sv, dv, scope)
-}</code></pre>
-<ol start="6">
-<li>设置转换后资源对象的 GVK </li>
-</ol>
-<p>前面的 Converter Example 代码示例的第二部分中，将 v1beta1 资源版本转换为内部版本，得到转换后资源对象的 GVK 为 ”/,Kind=“，原因在于 setTargetKind 函数，转换操作执行完成后，通过 setTargetKind 函数设置转换后资源对象的 GVK，判断当前资源对象是否是内部版本，是的话，设置 GVK 为 scheme.GroupVersionKind{}。</p>
-<pre><code>setTargetKind(out, gvk)
-
-func setTargetKind(obj Object, kind schema.GroupVersionKind) {
-    if kind.Version == APIVersionInternal {
-        obj.GetObjectKind().SetGroupVersionKind(scheme.GroupVersionKind{})
-        return
-    }
-    obj.GetObjectKind().SetGroupVersionKind(kind)
-}</code></pre>
+err = cmd.execute(flags)</code></pre>
+<p>args 数组中包含所有命令行参数，通过 c.Find 解析出 cmd 和 flags，然后通过 cmd.execute 执行命令中定义的 Run 执行函数。</p>
 
             </div>
             <hr/>
@@ -822,7 +610,7 @@ func setTargetKind(obj Object, kind schema.GroupVersionKind) {
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://blog.mj-cjm.top/kubernetes-data-structure-2/">http://blog.mj-cjm.top/kubernetes-data-structure-2/</a>
+                    <a href="http://blog.mj-cjm.top/kubectl-commands/">http://blog.mj-cjm.top/kubectl-commands/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -864,8 +652,8 @@ func setTargetKind(obj Object, kind schema.GroupVersionKind) {
                                     <span class="chip bg-color">Kubernetes</span>
                                 </a>
                             
-                                <a href="/tags/Kubernetes%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
-                                    <span class="chip bg-color">Kubernetes数据结构</span>
+                                <a href="/tags/kubectl-%E5%91%BD%E4%BB%A4%E8%A1%8C%E4%BA%A4%E4%BA%92/">
+                                    <span class="chip bg-color">kubectl 命令行交互</span>
                                 </a>
                             
                         </div>
@@ -1172,9 +960,10 @@ func setTargetKind(obj Object, kind schema.GroupVersionKind) {
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
                 <a href="/kubectl-commands/">
                     <div class="card-image">
@@ -1192,9 +981,9 @@ func setTargetKind(obj Object, kind schema.GroupVersionKind) {
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2020-11-24
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-11-24
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -1207,6 +996,7 @@ func setTargetKind(obj Object, kind schema.GroupVersionKind) {
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -1229,13 +1019,13 @@ func setTargetKind(obj Object, kind schema.GroupVersionKind) {
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/kubernetes-he-xin-shu-ju-jie-gou-1-0/">
+                <a href="/kubernetes-data-structure-2/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/13.jpg" class="responsive-img" alt="Kubernetes核心数据结构1.0">
+                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="Kubernetes核心数据结构2.0">
                         
-                        <span class="card-title">Kubernetes核心数据结构1.0</span>
+                        <span class="card-title">Kubernetes核心数据结构2.0</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -1246,7 +1036,7 @@ func setTargetKind(obj Object, kind schema.GroupVersionKind) {
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-11-14
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-11-21
                             </span>
                         <span class="publish-author">
                             
