@@ -585,6 +585,209 @@ App Name/Command/Type/  Name  / Flag</code></pre>
 ...
 err = cmd.execute(flags)</code></pre>
 <p>args 数组中包含所有命令行参数，通过 c.Find 解析出 cmd 和 flags，然后通过 cmd.execute 执行命令中定义的 Run 执行函数。</p>
+<h2 id="创建资源对象的过程"><a href="#创建资源对象的过程" class="headerlink" title="创建资源对象的过程"></a>创建资源对象的过程</h2><p>内部运行原理是，客户端和服务端进行一次 HTTP 请求的交互。创建资源对象的流程可分为：</p>
+<ol>
+<li>实例化 Factory 接口，通过 Builder 和 Visitor 将资源对象描述文件（xxx.yaml）文本格式转换成资源对象。</li>
+<li>将资源对象以 HTTP 请求的方式发送给 kube-apiserver，并得到响应结果。</li>
+<li>最终根据 Visitor 匿名函数集的 errors 判断是否成功创建了资源对象。</li>
+</ol>
+<h3 id="编写资源对象描述文件"><a href="#编写资源对象描述文件" class="headerlink" title="编写资源对象描述文件"></a>编写资源对象描述文件</h3><p>Kubernetes 系统的资源对象可以使用 JSON 或 YAML 文件来描述,一般使用 YAML 文件居多。</p>
+<pre><code>apiVersion: v1       #必选，版本号，例如v1
+kind: Pod       #必选，Pod
+metadata:       #必选，元数据
+  name: string       #必选，Pod名称
+  namespace: string    #必选，Pod所属的命名空间
+  labels:      #自定义标签
+    - name: string     #自定义标签名字
+  annotations:       #自定义注释列表
+    - name: string
+spec:         #必选，Pod中容器的详细定义
+  containers:      #必选，Pod中容器列表
+  - name: string     #必选，容器名称
+    image: string    #必选，容器的镜像名称
+    imagePullPolicy: [Always | Never | IfNotPresent] #获取镜像的策略 Alawys表示下载镜像 IfnotPresent表示优先使用本地镜像，否则下载镜像，Nerver表示仅使用本地镜像
+    command: [string]    #容器的启动命令列表，如不指定，使用打包时使用的启动命令
+    args: [string]     #容器的启动命令参数列表
+    workingDir: string     #容器的工作目录
+    volumeMounts:    #挂载到容器内部的存储卷配置
+    - name: string     #引用pod定义的共享存储卷的名称，需用volumes[]部分定义的的卷名
+      mountPath: string    #存储卷在容器内mount的绝对路径，应少于512字符
+      readOnly: boolean    #是否为只读模式
+    ports:       #需要暴露的端口库号列表
+    - name: string     #端口号名称
+      containerPort: int   #容器需要监听的端口号
+      hostPort: int    #容器所在主机需要监听的端口号，默认与Container相同
+      protocol: string     #端口协议，支持TCP和UDP，默认TCP
+    env:       #容器运行前需设置的环境变量列表
+    - name: string     #环境变量名称
+      value: string    #环境变量的值
+    resources:       #资源限制和请求的设置
+      limits:      #资源限制的设置
+        cpu: string    #Cpu的限制，单位为core数，将用于docker run --cpu-shares参数
+        memory: string     #内存限制，单位可以为Mib/Gib，将用于docker run --memory参数
+      requests:      #资源请求的设置
+        cpu: string    #Cpu请求，容器启动的初始可用数量
+        memory: string     #内存清楚，容器启动的初始可用数量
+    livenessProbe:     #对Pod内个容器健康检查的设置，当探测无响应几次后将自动重启该容器，检查方法有exec、httpGet和tcpSocket，对一个容器只需设置其中一种方法即可
+      exec:      #对Pod容器内检查方式设置为exec方式
+        command: [string]  #exec方式需要制定的命令或脚本
+      httpGet:       #对Pod内个容器健康检查方法设置为HttpGet，需要制定Path、port
+        path: string
+        port: number
+        host: string
+        scheme: string
+        HttpHeaders:
+        - name: string
+          value: string
+      tcpSocket:     #对Pod内个容器健康检查方式设置为tcpSocket方式
+         port: number
+       initialDelaySeconds: 0  #容器启动完成后首次探测的时间，单位为秒
+       timeoutSeconds: 0   #对容器健康检查探测等待响应的超时时间，单位秒，默认1秒
+       periodSeconds: 0    #对容器监控检查的定期探测时间设置，单位秒，默认10秒一次
+       successThreshold: 0
+       failureThreshold: 0
+       securityContext:
+         privileged:false
+    restartPolicy: [Always | Never | OnFailure]#Pod的重启策略，Always表示一旦不管以何种方式终止运行，kubelet都将重启，OnFailure表示只有Pod以非0退出码退出才重启，Nerver表示不再重启该Pod
+    nodeSelector: obeject  #设置NodeSelector表示将该Pod调度到包含这个label的node上，以key：value的格式指定
+    imagePullSecrets:    #Pull镜像时使用的secret名称，以key：secretkey格式指定
+    - name: string
+    hostNetwork:false      #是否使用主机网络模式，默认为false，如果设置为true，表示使用宿主机网络
+    volumes:       #在该pod上定义共享存储卷列表
+    - name: string     #共享存储卷名称 （volumes类型有很多种）
+      emptyDir: {}     #类型为emtyDir的存储卷，与Pod同生命周期的一个临时目录。为空值
+      hostPath: string     #类型为hostPath的存储卷，表示挂载Pod所在宿主机的目录
+        path: string     #Pod所在宿主机的目录，将被用于同期中mount的目录
+      secret:      #类型为secret的存储卷，挂载集群与定义的secre对象到容器内部
+        scretname: string  
+        items:     
+        - key: string
+          path: string
+      configMap:     #类型为configMap的存储卷，挂载预定义的configMap对象到容器内部
+        name: string
+        items:
+        - key: string</code></pre>
+<p>通过 kubectl create 命令与 kube-apiserver 交互并创建资源对象。（kubectl create -f XXX.yaml）</p>
+<h3 id="实例化-Factory-接口"><a href="#实例化-Factory-接口" class="headerlink" title="实例化 Factory 接口"></a>实例化 Factory 接口</h3><p>在执行每一个 kubectl 命令之前，都需要实例化 cmdutil Factory 接口对象的操作，Factory 是一个通用对象，它提供了与 kube-apiserver 的交互方式，以及验证资源对象等方法。cmdutil Factory 接口代码示例如下：</p>
+<pre><code>f := cmdutil.NewFactory(matchVersionKubeConfigFlags)
+
+type Factory interface {
+    DynamicClient()
+    // 动态客户端
+    KubernetesClientSet()
+    // ClientSet客户端
+    RESTClient()
+    // RESTClient客户端
+    NewBuilder()
+    // 实例化 Builder,Builder 用于将命令行获取的参数转换成资源对象
+    Validator(...)
+    // 验证资源对象
+    ...
+}</code></pre>
+<h3 id="Builder-构建资源对象"><a href="#Builder-构建资源对象" class="headerlink" title="Builder 构建资源对象"></a>Builder 构建资源对象</h3><p>Builder 用于将命令行获取的参数转换成资源对象，它实现了一种通用的资源对象转换功能。<br>Builder 结构体保存了命令行获取的各种参数，并通过不同函数处理不同参数，将其转换成资源对象。</p>
+<pre><code>r := f.NewBuilder().
+    Unstructured().
+    Schema(schema).
+    ContinueOnError().
+    NamespaceParam(cmdNamespace).DefaultNamespace().
+    FilenameParam(enforceNamespace, &amp;o.FilenameOptions).
+    LabelSelectorParam(o.Selector).
+    Flatten().
+    Do()
+err = r.Err()
+if err != nil {
+    return err
+}</code></pre>
+<p>首先通过 f.NewBuilder 实例化 Builder 对象，通过函数 Unstructured 等对参数赋值和初始化，将参数保存到 Builder 对象中，最后通过 Do 函数完成对资源的创建。</p>
+<p>其中，FilenameParam 函数用于识别 kubectl create 命令行参数是通过哪种方式传入资源对象描述文件：</p>
+<ol>
+<li>标准输入 stdin</li>
+<li>本地文件</li>
+<li>网络文件</li>
+</ol>
+<p>Do 函数返回 <strong>Result 对象</strong>，Result 对象的 <strong>info 字段</strong>保存了 RESTClient 与 kube-apiserver 交互产生的结果，可以通过 Result 对象的 infos 或 Object 方法来获取执行结果，而 Result 对象中的结果，是由 <strong>Visitor 执行产生</strong>。</p>
+<h3 id="Visitor-多层匿名函数嵌套"><a href="#Visitor-多层匿名函数嵌套" class="headerlink" title="Visitor 多层匿名函数嵌套"></a>Visitor 多层匿名函数嵌套</h3><p>Result 对象中的结果，是由 <strong>Visitor</strong> 执行并产生，Visitor 接口定义如下：</p>
+<pre><code>type Visitor interface {
+    Visit(VisitorFunc) error
+}
+type VisitorFunc func(*info, error) error
+// 该匿名函数则生成或处理 Info 结构</code></pre>
+<p>在 Kubernetes 源码中，Visitors 被设计为可以多层嵌套（即多层匿名函数嵌套，使用一个 Visitor 嵌套另一个 Visitor）。</p>
+<p>Visitor Example 代码示例如下：</p>
+<pre><code>type Visitor interface {
+    Visit(VisitorFunc) error
+}
+
+type VisitorFunc func() error
+
+type VisitorList []Visitor
+
+func (l VisitorList) Visit(fn VisitorFunc) error {
+    for i := range l {
+        if err := l[i].Visit(func() error {
+            fmt.Println("In VisitorList before fn")
+            fn()
+            fmt.Println("In VisitorList after fn")
+            return nil
+        }); err != nil {
+            return err
+        }
+    }
+    return nil
+}
+
+type Visitor1 struct {
+}
+
+func (v Visitor1) Visit(fn VisitorFunc) error {
+    fmt.Println("In Visitor1 before fn")
+    fn()
+    fmt.Println("In Visitor1 after fn")
+    return nil
+}
+
+type Visitor2 struct {
+    visitor Visitor
+}
+
+func (v Visitor2) Visit(fn VisitorFunc) error {
+    v.visitor.Visit(func() error {
+        fmt.Println("In Visitor2 before fn")
+        fn()
+        fmt.Println("In Visitor2 after fn")
+        return nil
+    })
+    return nil
+}
+
+type Visitor3 struct {
+    visitor Visitor
+}
+
+func (v Visitor3) Visit(fn VisitorFunc) error {
+    v.visitor.Visit(func() error {
+        fmt.Println("In Visitor3 before fn")
+        fn()
+        fmt.Println("In Visitor3 after fn")
+        return nil
+    })
+    return nil
+}
+
+func main() {
+    var visitor Visitor
+    var visitors []Visitor
+
+    visitor = Visitor1{}
+    visitors = append(visitors, visitor)
+    visitor = Visitor2{VisitorList(visitors)}
+    visitor = Visitor3{visitor}
+    visitor.Visit(func() error {
+        fmt.Println("In visitFunc")
+        return nil
+    })
+}</code></pre>
+<p>其中定义了 Visitor 接口，增加了 VisitorList 对象，该对象相当于多个 Visitor 匿名函数的集合，另外增加了 3 个 Visitor 的类，分别实现 Visit 方法，该方法的 VisitorFunc 函数在执行之前和执行之后分贝输出 print 信息。</p>
 
             </div>
             <hr/>
