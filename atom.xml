@@ -6,7 +6,7 @@
   <link href="http://blog.mj-cjm.top/atom.xml" rel="self"/>
   
   <link href="http://blog.mj-cjm.top/"/>
-  <updated>2020-11-26T14:48:55.055Z</updated>
+  <updated>2020-11-27T03:12:34.762Z</updated>
   <id>http://blog.mj-cjm.top/</id>
   
   <author>
@@ -17,11 +17,38 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>client-go</title>
+    <link href="http://blog.mj-cjm.top/client-go/"/>
+    <id>http://blog.mj-cjm.top/client-go/</id>
+    <published>2020-11-27T03:09:15.000Z</published>
+    <updated>2020-11-27T03:12:34.762Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;Kubernetes 系统使用 client-go 作为 Go 语言的官方编程式交互客户端库，提供对 Kubernetes API Server 服务的交互访问。client-go 的源码路径为</summary>
+        
+      
+    
+    
+    
+    <category term="Kubernetes源码解析" scheme="http://blog.mj-cjm.top/categories/Kubernetes%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
+    
+    
+    <category term="Kubernetes" scheme="http://blog.mj-cjm.top/tags/Kubernetes/"/>
+    
+    <category term="client-go" scheme="http://blog.mj-cjm.top/tags/client-go/"/>
+    
+  </entry>
+  
+  <entry>
     <title>kubectl 命令行交互</title>
     <link href="http://blog.mj-cjm.top/kubectl-commands/"/>
     <id>http://blog.mj-cjm.top/kubectl-commands/</id>
     <published>2020-11-24T02:04:56.000Z</published>
-    <updated>2020-11-26T14:48:55.055Z</updated>
+    <updated>2020-11-27T03:04:10.629Z</updated>
     
     
       
