@@ -384,6 +384,16 @@ func main() {
 }
 ```
 
-其中定义了 Visitor 接口，增加了 VisitorList 对象，该对象相当于多个 Visitor 匿名函数的集合，另外增加了 3 个 Visitor 的类，分别实现 Visit 方法，该方法的 VisitorFunc 函数在执行之前和执行之后分贝输出 print 信息。
+* 其中定义了 Visitor 接口，增加了 VisitorList 对象，该对象相当于多个 Visitor 匿名函数的集合，另外增加了 3 个 Visitor 的类，分别实现 Visit 方法，该方法的 VisitorFunc 函数在执行之前和执行之后分贝输出 print 信息。
+* 在 main 函数中，首先将 Visitor1 嵌入 VisitorList 中，VisitorList 是 Visitor 的集合，可存放多个 Visitor。然后将 VisitorList 嵌入 Visitor2 中，接着将 Visitor2 嵌入 Visitor3 中，最终形成 Visitor3{Visitor2{VisitorList{Visitor1}}} 的嵌套关系。
 
+Kubernetes 源码中的 Visitor，代码示例如下：
 
+```
+type EagerVisitorList []Visitor
+// 当遍历执行 Visitor 时，如果遇到错误，则保留错误信息，继续遍历执行下一个 Visitor，最后一起返回所有错误。
+type VisitorList []Visitor
+// 当遍历执行 Visitor 时，如果遇到错误，则立刻返回。
+```
+
+Kubernetes Visitor 中存在多种实现方法，不同实现方法的作用不同，最终通过 Visitor 的 error 信息为空判断创建资源请求执行成功。
