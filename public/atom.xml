@@ -6,7 +6,7 @@
   <link href="http://blog.mj-cjm.top/atom.xml" rel="self"/>
   
   <link href="http://blog.mj-cjm.top/"/>
-  <updated>2020-11-27T03:12:34.762Z</updated>
+  <updated>2020-11-30T13:35:12.526Z</updated>
   <id>http://blog.mj-cjm.top/</id>
   
   <author>
@@ -21,14 +21,15 @@
     <link href="http://blog.mj-cjm.top/client-go/"/>
     <id>http://blog.mj-cjm.top/client-go/</id>
     <published>2020-11-27T03:09:15.000Z</published>
-    <updated>2020-11-27T03:12:34.762Z</updated>
+    <updated>2020-11-30T13:35:12.526Z</updated>
     
     
       
       
         
         
-    <summary type="html">&lt;p&gt;Kubernetes 系统使用 client-go 作为 Go 语言的官方编程式交互客户端库，提供对 Kubernetes API Server 服务的交互访问。client-go 的源码路径为</summary>
+    <summary type="html">&lt;p&gt;Kubernetes 系统使用 client-go 作为 Go 语言的官方编程式交互客户端库，提供对 Kubernetes API Server 服务的交互访问。client-go 的源码路径为 vendor/k8s.io/client-go。&lt;/p&gt;
+&lt;h2</summary>
         
       
     
