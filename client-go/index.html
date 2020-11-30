@@ -688,7 +688,50 @@ func (r *Request) request(fn func(*http.Request, *http.Response)) error {
         ...
     }
 }</code></pre>
-<h3 id="ClientSet-客户端"><a href="#ClientSet-客户端" class="headerlink" title="ClientSet 客户端"></a>ClientSet 客户端</h3>
+<h3 id="ClientSet-客户端"><a href="#ClientSet-客户端" class="headerlink" title="ClientSet 客户端"></a>ClientSet 客户端</h3><p>RESTClient 是一种最基础的客户端，使用时需要制定 Resource 和 Version 等信息，相比于 RESTClient,ClientSet 使用起来更加便捷。</p>
+<ul>
+<li>ClientSet 在 RESTClient 的基础上封装了对 Resource 和 Version 的管理方法，每一个 Resource 可以理解为一个客户端，而 ClientSet 则是多个客户端的集合，每一个 Resource 和 Version 都以函数的方法暴露给开发者。<blockquote>
+<p>ClientSet 仅能访问 Kubernetes 自身内置的资源，不能直接访问 CRD 自定义资源，如果需要访问 CRD 自定义资源，可以通过 client-gen 代码生成器重新生成 ClientSet，在 ClientSet 集合中自动生成与 CRD 操作相关的接口。</p>
+</blockquote>
+</li>
+</ul>
+<p>ClientSet Example 代码示例如下：</p>
+<pre><code>func main() {
+    config, err != clientcmd.BuildConfigFromFlags("", "/root/.kube/config")
+    if err != nil {
+        panic(err)
+    }
+
+    clientset, err := kubernetes.NewForConfig(config)
+    if err != nil {
+        panic(err)
+    }
+    podClient := clientset.CoreV1().Pods(apiv1.NamespaceDefault)
+
+    list, err := podClient.List(metav1.ListOptions{Limit:500})
+    if err != nil {
+        panic(err)
+    }
+    for _, d := range list.Items {
+        fmt.Printf("NAMESPACE:%v \t NAME: %v \t STATU: %+v \n", d.Namespace, d.Name, d.Status.Phase)
+    }
+}</code></pre>
+<p>以上代码列出 defult 命名空间下的所有 Pod 资源对象的相关信息。首先加载 kubeconfig 配置信息,kubernetes.NewForConfig 通过 kubeconfig 配置信息实例化 clientset 对象，该对象用于管理所有 Resource 的客户端。</p>
+<ul>
+<li><p><strong>clientset.CoreV1().Pods</strong> 函数表示请求 core 核心资源组的 v1 资源版本下的 Pod 资源对象，其内部设置了 APIPath 请求的 HTTP 路径，GroupVersion 请求的资源组、资源版本，NegotiatedSerializer 数据的编码器。</p>
+</li>
+<li><p>其中 <strong>Pods</strong> 函数是一个资源接口对象，用于 Pod 资源对象的管理，例如对 Pod 资源执行 Create,Update,Delete,Get,List,Watch,Patch等操作，这些操作实际上是对 RESTClient 进行了封装，可以设置选项（如 Limit,TimeoutSeconds等）。</p>
+</li>
+<li><p>podClient.List 函数通过 RESTClient 获得 Pod 列表，代码如下：</p>
+</li>
+</ul>
+<pre><code>func (c *pods) List (opts metav1.ListOptions) (result *v1.PodList, err error) {
+    ...
+    result = &amp;v1.PodList{}
+    err = c.client.Get().Namespace(c.ns).Resource("pods").VersionedParams(&amp;opts, scheme.ParameterCodec).Timeout(timeout).Do().Into(result)
+    return 
+}</code></pre>
+<h3 id="DynamicClient-客户端"><a href="#DynamicClient-客户端" class="headerlink" title="DynamicClient 客户端"></a>DynamicClient 客户端</h3>
             </div>
             <hr/>
 
