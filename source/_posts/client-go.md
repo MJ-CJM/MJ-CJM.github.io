@@ -1,5 +1,5 @@
 ---
-title: client-go
+title: client-go1.0
 date: 2020-11-27 11:09:15
 tags: [Kubernetes, client-go]
 categories: Kubernetes源码解析
@@ -261,3 +261,138 @@ func (c *pods) List (opts metav1.ListOptions) (result *v1.PodList, err error) {
 ```
 
 ### DynamicClient 客户端
+
+它可以对任意 Kubernetes 资源进行 RESTful 操作，包括 CRD 自定义资源，与 ClientSet 操作类似，同样封装了 RESTClient，同样提供了Create,Update,Delete,Get,List,Watch,Patch等方法。
+
+* ClientSet 需要预先实现每种 Resource 和 Version 的操作，其内部的数据都是结构化数据（即已知数据结构）。而 DynamicClient 内部实现了 Unstructured,用于处理非结构化数据结构（即无法提前预知数据结构），这也是其能处理 CRD 自定义资源的关键。
+> DynamincClient 不是类型安全的，因此在访问 CRD 自定义资源时需要特别注意，例如，在操作指针不当的情况下可能会导致程序崩溃。
+
+* DynamicClient 的处理过程将 Resource（例如PodList）转换成 Unstructured 结构类型，Kubernetes 的所有 Resource 都可以转换为该结构类型。处理完成后，再将 Unstructured 转换为 PodList。
+> 整个过程类似于 Go 语言的 interface{} 断言转换过程。另外，Unstructured 结构类型是通过 map[string]interface{} 转换的。
+
+类似 kubectl 命令，DynamincClient Example 代码示例如下：
+
+```
+func main() {
+    config, err := clientcmd.BuildConfigFromFlags("", "/root/.kube/config")
+    if err != nil {
+        panic(err)
+    }
+
+    dynamicClient, err := dynamic.NewForConfig(config)
+    if err != nil {
+        panic(err)
+    }
+
+    gvr := schema.GroupVersionResource{Version:"v1", Resource:"pods"}
+    unstructObj, err := dynamicClient.Resource(gvr).Namespace(apiv1.NamespaceDefault).List(metav1.ListOptions{Limit: 500})
+    // dynamicClient.Resource(gvr) 函数用于设置请求的资源组、资源版本、资源名称。
+    // Namespace 函数用于设置请求的命名空间
+    // List 函数用于获取 Pod 列表（Pod列表为 unstructured.UnstructuredList 指针类型）
+    if err != nil {
+        panic(err)
+    }
+
+    podList := &corev1.PodList{}
+    err = runtime.DefaultUnstructuredConverter.FromUstructured(unstructObj.UnstructuredContent(), podList)
+    // runtime.DefaultUnstructuredConverter.FromUstructured 函数将 unstructured.UnstructuredList 转换成 PodList 类型。
+    if err != nil {
+        panic(err)
+    }
+
+    for _, d := range podList.Items {
+        fmt.Printf("NAMESPACE:%v \t NAME: %v \t STATU: %+v \n", d.Namespace, d.Name, d.Status.Phase)
+    }
+}
+```
+
+以上代码列出 defult 命名空间下的所有 Pod 资源对象的相关信息。首先加载 kubeconfig 配置信息，dynamic.NewForConfig 通过 kubeconfig 配置信息实例化 dynamicClient 对象，该对象用于管理 Kubernetes 的所有 Resource 的客户端，例如对 Resource 执行Create,Update,Delete,Get,List,Watch,Patch等操作。
+
+### DiscoveryClient 客户端
+
+它主要用于发现 Kubernetes API Server 所支持的资源组、资源版本、资源信息。
+
+* kubectl 的 api-versions 和 api-resources 命令输出也是通过 DiscoveryClient 实现的。
+
+* DiscoveryClient 同样在 RESTClient 的基础上进行了封装。
+
+* DiscoveryClient 除了可以发现 Kubernetes API Server 所支持的资源组、资源版本、资源信息，还可以将这些信息存储到本地，用于本地缓存（Cache），以减轻对 Kubernetes API Server 访问的压力，在运行 Kuvernetes 组件的机器上，缓存信息默认存储在 ~/.kube/cache 和 ~/.kube/http-cache 下。
+
+类似 kubectl 命令，通过 DiscoveryClient 列出 Kubernetes API Server 所支持的资源组、资源版本、资源信息，代码示例如下：
+
+```
+func main() {
+    config, err := client.BuildConfigFromFlags("", "/root/.kube/config")
+    if err != nil {
+        panic(err)
+    }
+
+    discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+    if err != nil {
+        panic(err)
+    }
+
+    _, APIResourceList, err := discoveryClient.ServerGroupsAndResources()
+    // 该函数会返回 Kubernetes API Server 所支持的资源组、资源版本、资源信息，通过遍历 APIResourceList 输出信息。
+    if err != nil {
+        panic(err)
+    }
+
+    for _, list := range APIResourceList {
+        gv, err := schema.ParaseGroupVersion(list.GroupVersion)
+        if err != nil {
+            panic(err)
+        }
+        for _, resource := range list.APIResources {
+            fmt.Printf("name: %v, group: %v, version: %v\n", resource.Name, gv.Group, gv.Version)
+        }
+    }
+}
+```
+
+运行以上代码，列出 Kubernetes API Server 所支持的资源组、资源版本、资源信息。首先加载 kubeconfig 配置信息，discovery.NewDiscoveryClientForConfig 通过 kubeconfig 配置信息实例化 discoveryClient 对象，该对象是用于发现 Kubernetes API Server 所支持的资源组、资源版本、资源信息的客户端。
+
+1. 获取 Kubernetes API Server 所支持的资源组、资源版本、资源信息
+
+Kubernetes API Server 暴露出 /api 和 /apis 接口。DiscoveryClient 通过 RESTClient 分别请求 /api 和 /apis 接口，从而获取 Kubernetes API Server 所支持的资源组、资源版本、资源信息。其核心实现位于 ServerGroupsAndResource -> ServerGroups 中，代码示例如下：
+
+```
+func (d *DiscoveryClient) ServerGroups() (apiGroupList *metav1.APIGroupList, err error) {
+    v := &metav1.APIVersion{}
+    err = d.restClient.Get().AbsPath(d.LegacyPrefix).Do().Into(v)
+    // 通过 RESTClient 请求 /api 接口，将请求结果存放于 metav1.APIVersion 结构体中。
+    ...
+    apiGroupList = &metav1.APIGroupList{}
+    err = d.restClient.Get().AbsPath("/apis").Do().Into(apiGroupList)
+    // 通过 RESTClient 请求 /apis 接口，将请求结果存放于 metav1.APIGroupList 结构体中。
+    ...
+    apiGroupList.Groups = append([]metav1.APIGroup{apiGroup}, apiGroupList.Groups...)
+    // 最后将 /api 接口中检索到的资源组信息合并到 apiGroupList 列表中并返回。
+    ...
+}
+```
+
+2. 本地缓存的 DicoveryClient 
+
+缓存可以减轻 client-go 对 Kubernetes API Server 的访问压力。默认每 10 分钟与 Kubernetes API Server 同步一次。
+
+DiscoveryClient 第一次获取资源组、资源版本、资源信息时，首先会查询本地缓存，如果数据不存在则请求 Kubernetes API Server 接口，Cache 将 Kubernetes API Server 响应的数据存储在本地一份并返回给 DiscoveryClient。当下一次 DiscoveryClient 再次获取资源信息时，会将数据直接从本地缓存返回给 DiscoveryClient。代码示例如下：
+
+```
+func (d *CacheDiscoveryClient) ServerResourceForGroupVersion (groupVersion string) (*metav1.APIResourceList, error) {
+    filename := filepath.Join(d.cacheDirectory, groupVersion, "serverresources.json")
+    cachedBytes, err := d.getCachedFile(filename)
+    if err == nil {
+        cachedResources := &metav1.APIResourceList{}
+        ...
+        return cachedResources, nil
+    }
+
+    liveResources, err := d.delegate.ServerResourcesForGroupVersion(groupVersion)
+    ...
+    if err := d.writeCachedFile(filename, liveResources); err != nil {
+        ...
+    }
+    return liveResources, nil
+}
+```
