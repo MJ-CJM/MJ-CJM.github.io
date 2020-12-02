@@ -6,7 +6,7 @@
   <link href="http://blog.mj-cjm.top/atom.xml" rel="self"/>
   
   <link href="http://blog.mj-cjm.top/"/>
-  <updated>2020-12-01T13:38:00.447Z</updated>
+  <updated>2020-12-02T13:45:06.216Z</updated>
   <id>http://blog.mj-cjm.top/</id>
   
   <author>
@@ -17,11 +17,39 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>client-go1.0</title>
+    <title>client-go2.0(informer)</title>
+    <link href="http://blog.mj-cjm.top/informer/"/>
+    <id>http://blog.mj-cjm.top/informer/</id>
+    <published>2020-12-01T13:42:07.000Z</published>
+    <updated>2020-12-02T13:45:06.216Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;Kubernetes 的其他组件都是通过 client-go 的 Informer 机制与 Kubernetes API Server 进行通信的，并且保证消息的实时性、可靠性、顺序性等。&lt;/p&gt;
+&lt;h3 id=&quot;Informer-机制架构设计&quot;&gt;&lt;a</summary>
+        
+      
+    
+    
+    
+    <category term="Kubernetes源码解析" scheme="http://blog.mj-cjm.top/categories/Kubernetes%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
+    
+    
+    <category term="Kubernetes" scheme="http://blog.mj-cjm.top/tags/Kubernetes/"/>
+    
+    <category term="client-go" scheme="http://blog.mj-cjm.top/tags/client-go/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>client-go1.0(源码架构和 Client 客户端)</title>
     <link href="http://blog.mj-cjm.top/client-go/"/>
     <id>http://blog.mj-cjm.top/client-go/</id>
     <published>2020-11-27T03:09:15.000Z</published>
-    <updated>2020-12-01T13:38:00.447Z</updated>
+    <updated>2020-12-01T13:42:59.746Z</updated>
     
     
       

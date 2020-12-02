@@ -1,5 +1,5 @@
 ---
-title: client-go1.0
+title: client-go1.0(源码架构和 Client 客户端)
 date: 2020-11-27 11:09:15
 tags: [Kubernetes, client-go]
 categories: Kubernetes源码解析

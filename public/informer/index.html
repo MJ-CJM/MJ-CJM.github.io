@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Kubernetes核心数据结构1.0, 云计算 边缘计算 MJ-CJM Kubernetes Docker">
+    <meta name="keywords" content="client-go2.0(informer), 云计算 边缘计算 MJ-CJM Kubernetes Docker">
     <meta name="description" content="南京邮电大学 | 边缘计算 | 研三">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>Kubernetes核心数据结构1.0 | MJ-CJM</title>
+    <title>client-go2.0(informer) | MJ-CJM</title>
     <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -314,12 +314,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/13.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/19.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">Kubernetes核心数据结构1.0</h1>
+                    <h1 class="description center-align post-title">client-go2.0(informer)</h1>
                 </div>
             </div>
         </div>
@@ -440,8 +440,8 @@
                                 <span class="chip bg-color">Kubernetes</span>
                             </a>
                         
-                            <a href="/tags/Kubernetes%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
-                                <span class="chip bg-color">Kubernetes数据结构</span>
+                            <a href="/tags/client-go/">
+                                <span class="chip bg-color">client-go</span>
                             </a>
                         
                     </div>
@@ -465,7 +465,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-11-14
+                    2020-12-01
                 </div>
                 
 
@@ -481,193 +481,109 @@
         <hr class="clearfix">
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="Group、Version、Resource核心数据结构"><a href="#Group、Version、Resource核心数据结构" class="headerlink" title="Group、Version、Resource核心数据结构"></a>Group、Version、Resource核心数据结构</h2><p>在整个 Kubernetes 体系架构中，资源是 Kubernetes 最重要的概念，它本质上是一个资源控制系统————注册、管理、调度资源并维护资源的状态。</p>
-<p>Kubernetes 将资源进行分组和版本化，形成 Group、Version、Resource。具体机构图如下：</p>
-<p><img src="../image/kubernetes%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84.jpg" alt="kubernetes核心数据结构图"></p>
-<ul>
-<li><p>部分资源同时会拥有自己的子资源，例如，Deployment 资源拥有 Status 子资源。</p>
-</li>
-<li><p>完整的表现形式为 <group>/<version>/<resource>/<subresource></subresource></resource></version></group></p>
-</li>
-<li><p>外部版本用于对外暴露给用户请求的接口所使用的资源对象。</p>
-</li>
-<li><p>内部版本不对外暴露，仅在 kubernetes api server 内部使用。</p>
-</li>
-<li><p>kubernetes 的每个资源可使用 metav1.APIResource 结构进行描述，它描述资源的基本信息，例如资源名称，资源所属 命名空间，资源种类，资源可操作的方法列表。</p>
-</li>
-</ul>
-<pre><code>resourceList := []*metav1.APIResourceList{
-    {
-        GroupVersion: "v1",
-        APIResources: []metav1.APIResource{
-            {
-                Name: "pods", # 资源不存在资源组时
-                Namespaced: true,
-                Kind: "Pod",
-                Verbs: []string{"get", "list", "delete", "deletecollection", "create", "update", "patch", "watch"},
-            },
-            {
-                Name: "services",
-                Namespaced: true,
-                Kind: "Service",
-                Verbs: []string{"get", "list", "delete", "deletecollection", "create", "update", "patch", "watch"},
-            },
-        },
-    },
-    {
-        GroupVersion: "apps/v1", # 同时存在资源组和版本
-        APIResources: []metav1.APIResource{
-            {
-                Name: "deployments",
-                Namespaced: true,
-                Kind: "Deployment",
-                Verbs: []string{"get", "list", "delete", "deletecollection", "create", "update", "patch", "watch"},
-            },
-        },
-    }
-}</code></pre>
-<blockquote>
-<p>可以通过 Group、Version、Resource 结构来明确标识一个资源的资源组名称，资源版本及资源名称。简称 GVR。<br>常见的资源结构如下： GVR, GV, GR, GVK, GV, GK, GVS。</p>
-</blockquote>
-<h2 id="Group"><a href="#Group" class="headerlink" title="Group"></a>Group</h2><pre><code>type APIGroup struct {
-    Name string
-    // 资源组名称
-    Versions []GroupVersionForDiscovery
-    // 资源组下所支持的资源组版本
-    PreferredVersion GroupVersionForDiscovery
-    // 首选版本
-}</code></pre>
-<ul>
-<li><p>拥有组名的资源组：其表现形式为 <group>/<version>/<resouce></resouce></version></group></p>
-<blockquote>
-<p>拥有组名的资源组的 HTTP PATH 以 /apis 为前缀，其表现形式为 /apis/<group>/<version>/<resource> </resource></version></group></p>
-</blockquote>
-</li>
-<li><p>没有组名的资源组：被称为 Core Groups（即核心资源组）或 Legacy Groups，也可能被称为 GroupLess （即无组），其表现形式为 <version>/<resouce></resouce></version></p>
-<blockquote>
-<p>没有组名的资源组的 HTTP PATH 以 /api 为前缀，其表现形式为 /api/<version>/<resource></resource></version></p>
-</blockquote>
-</li>
-</ul>
-<h2 id="Version"><a href="#Version" class="headerlink" title="Version"></a>Version</h2><p>分为三种版本，依次迭代顺序为 Alpha -&gt; Beta -&gt; Stable</p>
-<pre><code>type APIVersions struct {
-    Versions []string
-}
-// Versions: 所支持的资源版本列表</code></pre>
-<h2 id="Resource"><a href="#Resource" class="headerlink" title="Resource"></a>Resource</h2><p>一个资源被实例化后会表达为一个资源对象（即 Resource Object），所有资源对象都是 Entity（实体）。</p>
-<p>Kubernetes 目前支持的两种实体：</p>
-<ul>
-<li>持久性实体（Persistent Entity）:在资源对象被创建够， Kubernetes 会持久确保该资源对象存在。大部分对象属于持久性实体，例如 Deployment 资源对象。</li>
-<li>短暂性实体（Ephemeral Entity）:在资源对象被创建后，如果出现故障或调度失败，不会重新创建该资源对象，例如 Pod 资源对象。</li>
-</ul>
-<pre><code>type APIResource struct {
-    Name string
-    // 资源名称
-    SingularName string
-    // 资源的单数名称，它必须由小写字母组成，默认使用资源种类的小写形式进行命名。
-    Namespaced bool
-    // 资源是否拥有所属命名空间
-    Group string
-    Version string
-    Kind string
-    Verbs Verbs
-    ShortNames []string
-    // 资源的简称
-}</code></pre>
-<h3 id="资源外部版本和内部版本"><a href="#资源外部版本和内部版本" class="headerlink" title="资源外部版本和内部版本"></a>资源外部版本和内部版本</h3><ul>
-<li><p>External Object: 外部版本用于对外暴露给用户请求的接口所使用的资源对象，用户通过 YAML/JSON 格式的描述文件创建资源对象时，所使用的是外部版本的资源对象，外部版本的资源对象通过资源版本（Alpha, Beta, Stable）进行标识。</p>
-</li>
-<li><p>Internal Object: 内部版本不对外暴露，仅在 kubernetes api server 内部使用，内部版本用于多资源版本的转换。内部版本资源对象通过 runtime.APIVersionInternal (即_internal)进行标识。</p>
-<blockquote>
-<p>资源版本（如 v1beta1,v1等）与外部版本/内部版本概念不同，拥有资源版本的资源属于外部资源，拥有 runtime.APIVersionInternal 标识的资源属于内部版本</p>
-</blockquote>
-</li>
-<li><p>资源的外部版本和内部版本是需要相互转换的，而用于转换的函数需要事先初始化到资源注册表（Scheme）中，多个外部版本之间的资源进行相互转换，都需要通过内部版本进行中转。<strong>这也是 Kubernetes 能实现多资源版本转换的关键</strong></p>
-</li>
-<li><p>资源的外部版本和内部版本的代码定义也不太一样，外部版本的资源需要对外暴露给用户请求的接口，所以资源代码定义了 JSON/Proto Tags，而内部版本的资源不对外暴露，所以没有任何 Tags 定义。</p>
-</li>
-</ul>
-<h3 id="资源代码定义"><a href="#资源代码定义" class="headerlink" title="资源代码定义"></a>资源代码定义</h3><p>Kubernetes 内部版本和外部版本的资源代码结构并不相同。</p>
-<ul>
-<li>资源的内部版本定义了所支持的资源类型（types.go）、资源验证方法（validation.go）、资源注册至资源注册表的方法（install/install.go）等。</li>
-<li>资源的外部版本定义了资源的转换方法（conversion.go）、资源的默认值（defaults.go）等。</li>
-<li>外部版本与内部版本资源类型相同，都通过 register.go 代码文件定义所属的资源组和资源版本，外部版本资源对象通过资源版本（Alpha、Beta、Stable）标识。</li>
-</ul>
-<h3 id="将资源注册到资源注册表中"><a href="#将资源注册到资源注册表中" class="headerlink" title="将资源注册到资源注册表中"></a>将资源注册到资源注册表中</h3><p>在每一个 Kubernetes 资源组目录中，都拥有一个 install/install.go 代码文件，它负责将资源信息注册到资源注册表（Scheme）中。</p>
-<ul>
-<li><p>legancyschema.Scheme 是 kube-apiserver 组件的全局资源注册表，kubernetes 的所有资源信息都交给资源注册表统一管理。</p>
-</li>
-<li><p>core.AddToScheme: 函数注册 core 资源组内部版本的资源。</p>
-</li>
-<li><p>v1.AddToScheme: 函数注册 core 资源组外部版本的资源。</p>
-</li>
-<li><p>scheme.SetVersionPriority: 函数注册资源组的版本顺序，如有多个资源版本，排在最前面的为资源首选版本。</p>
-</li>
-</ul>
-<h3 id="资源操作方法"><a href="#资源操作方法" class="headerlink" title="资源操作方法"></a>资源操作方法</h3><p>在 kubernetes 系统中，针对每一个资源都有一定的操作方法（即 Verbs）。</p>
-<ul>
-<li><p>目前支持8中操作：create, delete, deletecollection, get, list, patch, update, watch，这些操作可以分为四大类，分别属于对资源进行创建、删除、更新和查询。</p>
-</li>
-<li><p>要了解一个资源对象拥有哪些可操作的方法，需要查看与存储相关联的源码包 registry。</p>
-</li>
-</ul>
-<h3 id="资源与命名空间"><a href="#资源与命名空间" class="headerlink" title="资源与命名空间"></a>资源与命名空间</h3><p>kubernetes 系统中默认内置了4个命名空间，分别如下：</p>
-<ul>
-<li>default: 默认的命名空间</li>
-<li>kube-system: 所有由 kubernetes 系统创建的资源对象都会被分配给该命名空间</li>
-<li>kube-public: 此命名空间下的资源对象可以被所有人访问</li>
-<li>kube-node-lease: 此命名空间下存放来自节点的心跳记录</li>
-<li>决定资源对象属于哪个命名空间，可通过资源对象的 ObjectMeta.Namespace 描述。</li>
-</ul>
-<h3 id="自定义资源"><a href="#自定义资源" class="headerlink" title="自定义资源"></a>自定义资源</h3><p>开发者通过 CustomResourceDefinitions（CRD）可以实现自定义资源，并将之添加到 Kubernetes 系统中。</p>
-<p>kubernetes 资源可分为内置资源和自定义资源，它们都通过资源对象描述文件（Manifest File）进行定义。一个资源对象需要用5个字段来描述，这些字段定义在 YAML 或 JSON 文件中。</p>
-<ul>
-<li>apiVersion: 指定创建资源对象的资源组和资源版本</li>
-<li>kind: 指定创建资源对象的种类</li>
-<li>metadata: 描述创建资源对象的元数据信息，例如名称、命名空间等。</li>
-<li>spec: 包含有关资源对象的核心信息，包括资源状态、副本数量、环境变量、卷等信息。</li>
-<li>status: 包含有关正在运行的资源对象的信息。</li>
-</ul>
-<h2 id="runtime-Object-类型基石"><a href="#runtime-Object-类型基石" class="headerlink" title="runtime.Object 类型基石"></a>runtime.Object 类型基石</h2><p>kubernetes 上的所有资源对象实际上就是一种 Go 语言的 Struct 类型，相当于一种数据结构，它们都有一个共同的结构叫 runtime.Object。runtime.Object 被设计为 Interface 接口类型，作为资源对象的通用资源对象。</p>
-<blockquote>
-<p>例如： Pod 资源对象可以转换为 runtime.Object 通用资源对象，runtime.Object 通用资源对象也可以转换为 Pod 资源对象。</p>
-</blockquote>
-<ul>
-<li>runtime.object 提供了两个方法，分别是 GetObjectKind 和 DeepCopyObject。</li>
-</ul>
+                <p>Kubernetes 的其他组件都是通过 client-go 的 Informer 机制与 Kubernetes API Server 进行通信的，并且保证消息的实时性、可靠性、顺序性等。</p>
+<h3 id="Informer-机制架构设计"><a href="#Informer-机制架构设计" class="headerlink" title="Informer 机制架构设计"></a>Informer 机制架构设计</h3><p><img src="../image/informer%E8%BF%90%E8%A1%8C%E5%8E%9F%E7%90%86.jpg" alt="Informer运行原理"></p>
 <ol>
-<li>GetObjectKind: 设置并返回 GroupVersionKind</li>
-<li>DeepCopyObject: 用于深复制当前资源对象并返回</li>
+<li>Reflector</li>
 </ol>
-<ul>
-<li><p>Kubernetes 的每一个资源对象都嵌入了 metav1.TypeMeta 类型，该类型实现了 GetObjectKind 方法</p>
-<pre><code>func main(){
-  pod := &amp;core.Pod{
-      TypeMeta: metav1.TypeMeta{
-          Kind: "Pod",
-      },
-      ObjectMeta: metav1.ObjectMeta{
-          Labels: map[string]string{"name": "foo"}
-      },
-  }
-  // 首先实例化 pod 资源
+<p>Reflector 用于监控（Watch）指定的 Kubernetes 资源，当监控的资源发送变化时，触发相应的变更事件（例如 Added,Updated,Deleted），并将其资源对象存放到本地缓存 DeltaFIFO 中。</p>
+<ol start="2">
+<li>DeltaFIFO </li>
+</ol>
+<p>DeltaFIFO 可以分开理解，FIFO 是一个先进先出的队列，它拥有队列操作的基本方法，例如Add,Update,Delete,List,Pop,Close等，而 Delta 是一个资源对象存储，它可以保存资源对象的操作类型，例如Added,Updated,Deleted,Sync操作类型等。</p>
+<ol start="3">
+<li>Indexer</li>
+</ol>
+<p>Indexer 是 client-go 用来存储资源对象并自带索引功能的本地存储，Reflector 从 DeltaFIFO 中将消费出来的资源对象存储至 Indexer。Indexer 与 Etcd 集群中的数据完全保持一致。client-go 可以很方便地从本地存储中读取相应的资源对象数据，而无须每次从远程 Etcd 集群中读取，以减轻 Kubernetes API Server 和 Etcd 集群的压力。</p>
+<p>Informers Example 代码示例如下：</p>
+<pre><code>func main() {
+    config, err := clientcmd.BuildConfigFromFlags("", "/root/.kube/config")
+    if err != nil {
+        panic(err)
+    }
 
-   obj := runtime.Object(pod)
-   // 通过 runtime.Object 将 Pod 资源对象转换成通用资源对象
+    clientset, err := kubernetes.NewForConfig(config)
+    if err != nil {
+        panic(err)
+    }
 
-   pod2, ok := obj.(*core.Pod)
-   // 通过断言的方式，将 obj 通用资源转换成 Pod 资源对象
-   if !ok {
-       panic("unexpected")
-   }
+    stopCh := make(chan struct{})
+    defer close(stopCh)
 
-   if !reflect.DeepEqual(pod, pod2) {
-       panic("unexpected")
-   }
-   // 最终通过反射来验证转换前和转换后的资源对象是否相等
+    sharedInformers := informers.NewSharedInformerFactory(clientset, time.Minute)
+    informer := sharedInformers.Core().V1().Pods().Informer()
+
+    informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+        AddFunc: func(obj interface{}) {
+            mObj := obj.(v1.Object)
+            log.Printf("New Pod Added to Store: %s", mObj.GetName())
+        },
+        UpdateFunc: func(oldObj, newObj interface{}) {
+            oObj := oldObj.(v1.Object)
+            nObj := newObj.(v1.Object)
+            log.Printf("%s Pod Updated to %s", oObj.GetName(), nObj.GetName())
+        },
+        DeleteFunc: func(obj interface{}) {
+            mObj := obj.(v1.Object)
+            log.Printf("Pod Deleted from Store: %s", mObj.GetName())
+        },
+    })
+
+    informer.Run(stopCh)
 }</code></pre>
+<p>首先通过 kubernetes.NewForConfig 创建 clientset 对象，Informer 需要通过 ClientSet 与 Kubernetes API Server 进行交互。另外创建 stopCh 对象，该对象用于在程序进程退出之前通知 Informer 提前退出，因为 Informer 是一个持久运行的 goroutine。</p>
+<ul>
+<li><p>informers.NewSharedInformerFactory 函数实例化了 SharedInformer 对象，它接受两个参数，第一个参数 clientset 是用于与 Kubernetes API Server 交互的客户端，第二个参数 time.Minute 用于设置多久进行一次重新同步（resync），resync 会周期性地执行 List 操作，将所有的资源存放在 Informer Store 中，如果该参数为 0，则禁用 resync 功能。</p>
+</li>
+<li><p>通过 sharedInformers.Core().V1().Pods().Informer() 可以得到具体的 Pod 资源的 Informer 对象。</p>
+</li>
+<li><p>通过 informer.AddEventHandler 函数可以为 Pod 资源添加资源事件回调方法。</p>
 </li>
 </ul>
+<blockquote>
+<p>正常情况下， Kubernetes 的其他组件在使用 Informer 机制时触发资源事件回调方法，将资源对象推送到 WorkQueue 或其他队列中。</p>
+</blockquote>
+<p>通过 Informer 机制可以很容易地监控我们所关心的资源事件，并通知 client-gp，告知 Kubernetes 资源事件变更了并且需要进行相应的处理。</p>
+<ol>
+<li>资源 Informer </li>
+</ol>
+<p>每一个 Kubernetes 资源上都实现了 Inforemer 机制，每一个 Informer 上都会实现 Informer 和 Lister 方法，例如 PodInformer,代码示例如下：</p>
+<pre><code>type PodInformer interface {
+    Informer() cache.SharedIndexInformer
+    Lister()  v1.PodLister
+}</code></pre>
+<p>调用不同资源的 Informer，代码示例如下：</p>
+<pre><code>podInformer := sharedInformer.Core().V1().Pods().Informer()
+nodeInformer := sharedInformer.Node().V1beta1().RuntimeClasses().Informer()</code></pre>
+<p>定义不同资源的 Informe，允许监控不同资源的资源事件。</p>
+<ol start="2">
+<li>Shared Informer 共享机制</li>
+</ol>
+<p>Informer 也被称为 Shared Informer，它是可以共享使用的。若同一资源的 Informer 被实例化了多次，每个 Informer 使用一个 Reflector，那么会运行过多相同的 ListAndWatch，太多重复的序列化和反序列化操作会导致 Kubernetes API Server 负载过重。</p>
+<p>Shared Informer 可以使同一资源 Informer 共享一个 Reflector，这样可以节约很多资源。通过 map 数据结构实现共享的 Informer 机制。Shared Informer 定义了一个 map 数据结构，用于存放所有 Informer 的字段，代码示例如下：</p>
+<pre><code>type sharedInformerFactory struct {
+    ...
+    informers map[reflect.Type]cache.SharedIndexInformer
+}
+
+func (f *sharedInformerFactory) InformerFor(obj runtime.Object, newFunc internalinterfaces.NewInformerFunc) cache.SharedIndexInformer{
+    ...
+    informerType := reflect.TypeOf(obj)
+    informer, exists := f.informers[informerType]
+    if exists {
+        return informer
+    }
+    ...
+    f.informers[informerType] = informer
+
+    return informer
+}</code></pre>
+<ul>
+<li>informers 字段中存储了资源类型和对应于 SharedIndexInformer 的映射关系。</li>
+<li>informerFor 函数添加了不同资源的 Informer，在添加过程中如果已经存在同类型的资源 Informer，则返回当前 Informer，不再继续添加。</li>
+<li>最后通过 Shared Informer 的 Start 方法使 f.informers 中的每个 informer 通过 goroutine 持久运行。</li>
+</ul>
+<h3 id="Reflector"><a href="#Reflector" class="headerlink" title="Reflector"></a>Reflector</h3><p>Informer 可以监控 Kubernetes 内置资源，也可以是 CRD 自定义资源，其中最核心的功能是 Refector。Reflector 用于监控（Watch）指定的 Kubernetes 资源，当监控的资源发送变化时，触发相应的变更事件（例如 Added,Updated,Deleted），并将其资源对象存放到本地缓存 DeltaFIFO 中。</p>
 
             </div>
             <hr/>
@@ -693,7 +609,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://blog.mj-cjm.top/kubernetes-he-xin-shu-ju-jie-gou-1-0/">http://blog.mj-cjm.top/kubernetes-he-xin-shu-ju-jie-gou-1-0/</a>
+                    <a href="http://blog.mj-cjm.top/informer/">http://blog.mj-cjm.top/informer/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -735,8 +651,8 @@
                                     <span class="chip bg-color">Kubernetes</span>
                                 </a>
                             
-                                <a href="/tags/Kubernetes%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
-                                    <span class="chip bg-color">Kubernetes数据结构</span>
+                                <a href="/tags/client-go/">
+                                    <span class="chip bg-color">client-go</span>
                                 </a>
                             
                         </div>
@@ -1043,17 +959,18 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
-                <a href="/kubernetes-data-structure-2/">
+                <a href="/informer/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="Kubernetes核心数据结构2.0">
+                        <img src="/medias/featureimages/19.jpg" class="responsive-img" alt="client-go2.0(informer)">
                         
-                        <span class="card-title">Kubernetes核心数据结构2.0</span>
+                        <span class="card-title">client-go2.0(informer)</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -1063,9 +980,9 @@
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2020-11-21
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-12-01
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -1078,6 +995,7 @@
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -1085,8 +1003,8 @@
                         <span class="chip bg-color">Kubernetes</span>
                     </a>
                     
-                    <a href="/tags/Kubernetes%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
-                        <span class="chip bg-color">Kubernetes数据结构</span>
+                    <a href="/tags/client-go/">
+                        <span class="chip bg-color">client-go</span>
                     </a>
                     
                 </div>
@@ -1100,13 +1018,13 @@
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/kubernetes-gou-jian-guo-cheng/">
+                <a href="/client-go/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/0.jpg" class="responsive-img" alt="Kubernetes构建过程">
+                        <img src="/medias/featureimages/22.jpg" class="responsive-img" alt="client-go1.0(源码架构和 Client 客户端)">
                         
-                        <span class="card-title">Kubernetes构建过程</span>
+                        <span class="card-title">client-go1.0(源码架构和 Client 客户端)</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -1117,7 +1035,7 @@
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-11-12
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-11-27
                             </span>
                         <span class="publish-author">
                             
@@ -1138,8 +1056,8 @@
                         <span class="chip bg-color">Kubernetes</span>
                     </a>
                     
-                    <a href="/tags/Kubernetes%E6%9E%84%E5%BB%BA/">
-                        <span class="chip bg-color">Kubernetes构建</span>
+                    <a href="/tags/client-go/">
+                        <span class="chip bg-color">client-go</span>
                     </a>
                     
                 </div>
