@@ -6,7 +6,7 @@
   <link href="http://blog.mj-cjm.top/atom.xml" rel="self"/>
   
   <link href="http://blog.mj-cjm.top/"/>
-  <updated>2020-12-07T13:56:35.260Z</updated>
+  <updated>2020-12-08T13:08:34.451Z</updated>
   <id>http://blog.mj-cjm.top/</id>
   
   <author>
@@ -15,6 +15,33 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>client-go3.0(workqueue)</title>
+    <link href="http://blog.mj-cjm.top/workqueue/"/>
+    <id>http://blog.mj-cjm.top/workqueue/</id>
+    <published>2020-12-07T14:08:20.000Z</published>
+    <updated>2020-12-08T13:08:34.451Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;WorkQueue 称为工作队列，Kubernetes 的 WorkQueue 队列与普通 FIFO</summary>
+        
+      
+    
+    
+    
+    <category term="Kubernetes源码解析" scheme="http://blog.mj-cjm.top/categories/Kubernetes%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
+    
+    
+    <category term="Kubernetes" scheme="http://blog.mj-cjm.top/tags/Kubernetes/"/>
+    
+    <category term="client-go" scheme="http://blog.mj-cjm.top/tags/client-go/"/>
+    
+  </entry>
   
   <entry>
     <title>client-go2.0(informer)</title>
