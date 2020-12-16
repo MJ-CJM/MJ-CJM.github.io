@@ -121,14 +121,45 @@ rate.NewLimiter(rate.Limit(10), 100)
 
 #### 排队指数算法
 
+排队指数算法将相同元素的排队数作为指数，排队数增大，速率限制呈指数级增长，但其最大值不会超过 maxDelay。（元素的排队数统计是有限速周期的）
+
+排队指数算法的核心实现代码示例如下：
+
+```
+r.failures[item] = r.failures[item] + 1
+backoff := float64(r.baseDelay.Nanoseconds()) * math.Pow(2, float64(exp))
+if backoff > math.MaxInt64 {
+    return r.maxDelay
+}
+```
+
+failures 字段用于统计元素排队数，每当 AddRateLimited 方法插入新元素时，会为该字段加 1；另外，baseDelay 字段是最初的限速单位，maxDelay 字段是最大限速单位。
+
+> 在同一限速周期内，如果不存在相同元素，那么所有元素的延迟时间为 baseDelay；而在同一限速周期内，如果存在相同元素，那么相同元素的延迟时间呈指数级增长，最长延迟时间不超过 maxDelay。
 
 #### 计数器算法
 
+其原理是：限制一段时间内允许通过的元素数量。但 WorkQueue 在此基础上扩展了 fast 和 slow 速率。
+
+计算器算法提供了 4 个主要字段，failures 字段用于统计元素排队数，每当 AddRateLimited 方法插入新元素时，会为该字段加 1；而 fastDelay 和 slowDelay 字段用于定义 fast,slow 速率的，另外 maxFastAttempts 字段用于控制从 fast 速率转换到 slow 速率。计数器算法核心实现代码示例如下：
+
+```
+r.failures[item] = r.failures[item] + 1
+if r.failures[item] <= r.maxFastAttempts {
+    return r.fastDelay
+}
+return r.slowDelay
+```
 
 #### 混合模式
 
+混合模式是将多种限速算法混合使用，即多种限速算法同时生效。例如，同时使用排队指数算法和令牌桶算法，代码示例如下：
 
-
-
-
-
+```
+func DefaultControllerRateLimiter() RateLimiter {
+    return NewMaxOfRateLimiter (
+        NewItemExponentialFailureRateLimiter(5*time.Millisecond, 1000*time.Second),
+        & BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(10), 100)},
+    )
+}
+```
