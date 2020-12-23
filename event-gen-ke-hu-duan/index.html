@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="client-go3.0(workqueue), 云计算 边缘计算 MJ-CJM Kubernetes Docker">
+    <meta name="keywords" content="client-go 最终章, 云计算 边缘计算 MJ-CJM Kubernetes Docker">
     <meta name="description" content="南京邮电大学 | 边缘计算 | 研三">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>client-go3.0(workqueue) | MJ-CJM</title>
+    <title>client-go 最终章 | MJ-CJM</title>
     <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -314,12 +314,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/10.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/14.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">client-go3.0(workqueue)</h1>
+                    <h1 class="description center-align post-title">client-go 最终章</h1>
                 </div>
             </div>
         </div>
@@ -465,7 +465,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-12-07
+                    2020-12-16
                 </div>
                 
 
@@ -481,117 +481,155 @@
         <hr class="clearfix">
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>WorkQueue 称为工作队列，Kubernetes 的 WorkQueue 队列与普通 FIFO 队列相比，它的主要功能在于标记和去重，并支持如下特性：</p>
+                <h2 id="EventBroadcaster-事件管理器"><a href="#EventBroadcaster-事件管理器" class="headerlink" title="EventBroadcaster 事件管理器"></a>EventBroadcaster 事件管理器</h2><p>Kubernetes 的事件（Event）是一种资源对象（Resource Object），用于展示集群内发生的情况，Kubernetes 系统中的各个组件会将运行发生的各种事件上报给 Kubernetes API Server。</p>
+<blockquote>
+<p>此处的 Event 事件是 Kubernetes 所管理的 Event 资源对象，而非 Etcd 集群监控机制产生的回调事件。</p>
+</blockquote>
 <ul>
-<li>有序：按照添加顺序处理元素。</li>
-<li>去重：相同元素在同一时间不会被重复处理。</li>
-<li>并发性：多生产者和多消费者</li>
-<li>标记机制：支持标记功能，标记一个元素是否被处理，也允许元素在处理时重新排队。</li>
-<li>通知机制：ShutDown 方法通过信号量通知队列不再接收新的元素，并通知 metric goroutine 退出。</li>
-<li>延迟：支持延迟队列，延迟一段时间后再将元素存入队列。</li>
-<li>限速：支持限速队列，元素存入队列时进行速率限制。（限制一个元素被重新排队的次数）</li>
-<li>Metric: 支持 metric 监控指标，可用于 Prometheus 监控。</li>
-</ul>
-<p>WorkQueue 支持三种队列，并提供了 3 种接口：</p>
-<ol>
-<li>Interface: FIFO 队列接口，先进先出队列，并支持去重机制。</li>
-<li>DelayingInterface: 延迟队列接口，基于 Interface 接口封装，延迟一段时间后再将元素存入队列。</li>
-<li>RateLimitingInterface: 限速队列接口，基于 DelayingInterface 接口封装，支持元素存入队列时进行速率限制。</li>
-</ol>
-<h3 id="FIFO-队列"><a href="#FIFO-队列" class="headerlink" title="FIFO 队列"></a>FIFO 队列</h3><p>FIFO 队列支持最基本的队列方法，WorkQueue 中的限速及延迟队列都基于 Interface 接口实现，其提供如下方法：</p>
-<pre><code>type Interface interface {
-    Add(item interface{})
-    // 给队列添加元素，可以是任意类型的
-    Len() int
-    // 返回当前队列的长度
-    Get() (item interface{}, shutdown bool)
-    // 获取队列头部的一个元素
-    Done(item interface{})
-    // 标记队列中该元素已被处理
-    ShutDown()
-    // 关闭队列
-    ShuttingDown() bool
-    // 查询队列是否正在关闭
-}</code></pre>
-<p>FIFO 队列数据结构如下：</p>
-<pre><code>type Type struct {
-    queue []t
-    // queue是实际存储元素的地方
-    dirty set
-    // 除了保证能去重，还能保证一个元素只被处理一次
-    processing set
-    // 用于标记一个元素是否正在被处理
-    cond *sync.Cond
-    shuttingDown bool
-    metrics queueMetrics
-    unfinishedWorkUpdatedPeriod time.Duration
-    clock clock.Clock
-}</code></pre>
-<ul>
-<li><p>一旦元素完成被 Done 方法标记，则将该元素添加到 queue 字段的末尾。</p>
+<li><p>Kubernetes 系统以 Pod 资源为核心，Deployment,StatefulSet,ReplicaSet,DaemonSet,CronJob 等,最终都会创建出 Pod。因此 Kubernetes 事件也是围绕 Pod 进行的，在 Pod 生命周期内的关键步骤都会产生事件消息。</p>
 </li>
-<li><p>dirty 和 processing 字段都是用 Hash Map 数据结构实现的，所以不需要考虑无序，只保证去重即可。</p>
+<li><p>Event 资源数据结构描述了当前时间段内发生了哪些关键性事件。事件有两种类型，分别为 Normal 和 Warning，前者为正常事件，后者为警告事件。</p>
 </li>
 </ul>
-<h3 id="延迟队列"><a href="#延迟队列" class="headerlink" title="延迟队列"></a>延迟队列</h3><p>延迟队列，基于 FIFO 队列接口封装，在原有功能上增加了 AddAfter 方法，其原理是延迟一段时间后再将元素插入 FIFO 队列。延迟队列数据结构如下：</p>
-<pre><code>type DelayingInterface interface {
-    Interface
-    AddAfter(item interface{}, duration time.Duration)
-    // 插入一个元素，duration 为延迟时间参数，小于或等于0，会直接将元素插入 FIFO 队列中。
-}
-
-type delayingType struct {
-    Interface
-    clock clock.Clock
-    stopCh chan struct{}
-    heartbeat clock.Ticker
-    waitingForAddCh chan *waitFor
-    // 其默认初始大小为1000，通过 AddAfter 方法插入元素时，是非阻塞状态，当插入元素大于或等于 1000 时，延迟队列才会处于阻塞状态。
-    metrics retryMetrics
-    deprecatedMetrics retryMetrics
+<h3 id="EventBroadcaster-事件管理机制运行原理"><a href="#EventBroadcaster-事件管理机制运行原理" class="headerlink" title="EventBroadcaster 事件管理机制运行原理"></a>EventBroadcaster 事件管理机制运行原理</h3><p>Actor 可以是 Kubernetes 系统中的任意组件，当组件中发生了一些关键性事件时，可通过 EventRecorder 记录事件。EventBroadcaster 事件管理机制可以分为如下部分：</p>
+<ul>
+<li>EventRecorder: 事件生产者，也称为事件记录器。Kubernetes 系统组件通过 EventRecorder 记录关键性事件。</li>
+<li>EventBroadcaster: 事件消费者，也称为事件广播器。EventBroadcaster 消费 EventRecorder 记录的事件并将其分发给目前所有已连接的 broadcasterWatcher.分发过程由两种机制，分别是非阻塞分发机制和阻塞分发机制。</li>
+<li>broadcasterWatcher: 观察者管理，用于定义事件的处理方式，例如上报事件至 Kubernetes API Server。</li>
+</ul>
+<h4 id="EventRecorder"><a href="#EventRecorder" class="headerlink" title="EventRecorder"></a>EventRecorder</h4><p>EventRecorder 拥有如下 4 种记录方法，EventRecorder 事件记录器接口代码示例如下：</p>
+<pre><code>type EventRecorder interface {
+    Event(...)
+    // 对刚发生的事件进行记录
+    Eventf(...)
+    // 通过使用 fmt.Sprintf 格式化输出事件的格式
+    PastEventf(...)
+    // 允许自定义事件发生的时间，以记录已经发生过的消息
+    AnnotatedEventf(...)
+    // 功能与 Eventf 一样，但附加了注释字段
 }</code></pre>
-<p>将元素放入 waitingForAddCh 字段中，通过 waitingLoop 函数消费元素数据，当元素的延迟时间不大于当前时间，说明还需要延迟将元素插入 FIFO 队列的时间，此时将该元素放入优先队列中，当元素的延迟时间大于当前时间时，则将该元素插入 FIFO 队列中，另外，还会遍历优先队列中的元素，按照上述逻辑验证时间。</p>
-<h3 id="限速队列"><a href="#限速队列" class="headerlink" title="限速队列"></a>限速队列</h3><p>限速队列，基于延迟队列和 FIFO 队列接口封装（RateLimitingInterface），重点在于它提供的 4 种限速算法接口(RateLimiter)，其原理是，限速队列利用延迟队列的特性，延迟某个元素的插入时间，达到限速目的，RateLimiter 数据结构如下：</p>
-<pre><code>type RateLimiter interface {
-    When(item interface{}) time.Duration
-    // 获取指定元素应该等待的时间
-    Forget(item interface{})
-    // 释放指定元素，清空该元素的排队数
-    NumRequeues(item interface{}) int
-    // 获取指定元素的排队数
+<p>Event 方法示例，记录当前发生的事件，Event -&gt; recorder.generateEvent -&gt; recorder.Action 代码示例如下：</p>
+<pre><code>func (m *Broadcaster) Action (action EventType, obj runtime.Object) {
+    m.incoming &lt;- Event{action, obj}
 }</code></pre>
+<p>Action 函数通过 goroutine 实现异步操作，该函数将事件写入 m.incommit Chan 中，完成事件生成过程。</p>
+<h4 id="EventBroadcaster"><a href="#EventBroadcaster" class="headerlink" title="EventBroadcaster"></a>EventBroadcaster</h4><p>EventBroadcaster 消费 EventRecorder 记录的事件并将其分发给目前所有已连接的 broadcasterWatcher.EventBroadcaster 通过 NewBroadcaster 函数进行实例化：</p>
+<pre><code>func NewBroadcaster() EventBroadcaster {
+    return &amp;eventBroadcasterImpl{watch.NewBroadcaster(maxQueuedEvents, watch.DropIfChannelFull), defaultSleepDuration}
+}</code></pre>
+<p>在实例化过程中，会通过 watch.NewBroadcaster 函数在内部启动 goroutine 来监控 m.incoming,并将监控的事件通过 m.distribute 函数分发给所有已连接的 broadcasterWatcher。在非阻塞分发机制下使用 DropIfChannelFull 标识，在阻塞分发机制下使用 WaitIfChannelFull 标识，默认为 DropIfChannelFull 标识。代码示例如下：</p>
+<pre><code>func (m *Broadcaster) distribute (event Event) {
+    m.lock.Lock()
+    defer m.lock.Unlock()
+    if m.fullChannelBehavior == DropIfChannelFull {
+        for _, w := range m.watchers {
+            select {
+                case w.result &lt;- event:
+                case &lt;- w.stopped:
+                default:
+            }
+        }
+    } else {
+        for _, w := range m.watchers {
+            select {
+                case w.result &lt;- event:
+                case &lt;- w.stopped:
+            }
+        }
+    }
+}</code></pre>
+<p>在分发过程中，DropIfChannelFull 标识位于 select 多路复用中，使用 default 关键字做非阻塞分发，当 w.result 缓冲区满的时候，事件会丢失。WaitIfChannelFull 标识也位于 select 多路复用中，没有 default 关键字，当 w.result 缓冲区满的时候，分发过程会阻塞并等待。</p>
 <blockquote>
-<p>限速周期：一个限速周期是指从执行 AddRateLimited 方法到执行完 Forget 方法之间的时间，如果该元素被 Forget 方法处理完，则清空排队数。</p>
+<p>Kubernetes 中的事件与其他的资源不同，它有一个很重要的特性，那就是它可以丢失。（与 etcd 的性能有关，事件的重要性远低于集群的稳定性）</p>
 </blockquote>
-<h4 id="令牌桶算法"><a href="#令牌桶算法" class="headerlink" title="令牌桶算法"></a>令牌桶算法</h4><p>令牌桶算法内部实现了一个存放 token 的 “桶”，初始时“桶”是空的，token 会以固定速率往“桶”里填充，直到将其填满为止，多余的 token 会被丢弃。每个元素会从令牌桶得到一个 token，只有得到 token 的元素才允许通过，而没得到 token 的元素处于等待状态。令牌桶算法通过发放 token 来达到限速目的。</p>
-<p>WorkQueue 在默认的情况下会实例化令牌桶，代码示例如下：</p>
-<pre><code>rate.NewLimiter(rate.Limit(10), 100)</code></pre>
-<p>其中传入 r 和 b 两个参数，r 表示每秒往“桶”里填充的 token 数量，b 参数表示令牌桶的大小，那么前 b 个元素会被立刻处理，而后面元素的延迟时间分别为 item100/100ms, item101/200ms,item102/300ms,item103/400ms。</p>
-<h4 id="排队指数算法"><a href="#排队指数算法" class="headerlink" title="排队指数算法"></a>排队指数算法</h4><p>排队指数算法将相同元素的排队数作为指数，排队数增大，速率限制呈指数级增长，但其最大值不会超过 maxDelay。（元素的排队数统计是有限速周期的）</p>
-<p>排队指数算法的核心实现代码示例如下：</p>
-<pre><code>r.failures[item] = r.failures[item] + 1
-backoff := float64(r.baseDelay.Nanoseconds()) * math.Pow(2, float64(exp))
-if backoff &gt; math.MaxInt64 {
-    return r.maxDelay
+<h4 id="broadcasterWatcher"><a href="#broadcasterWatcher" class="headerlink" title="broadcasterWatcher"></a>broadcasterWatcher</h4><p>broadcasterWatcher 是每个 Kubernetes 系统组件自定义处理事件的方式。每个 broadcasterWatcher 拥有两种自定义处理事件的函数，分别介绍如下：</p>
+<ul>
+<li>StartLogging: 将事件写入日志中。</li>
+<li>StartRecordingToSink: 将事件上报至 Kubernetes API Server 并存储至 Etcd 集群。</li>
+</ul>
+<p>以 kube-scheduler 组件为例，该组件为一个 broadcasterWatcher，通过 StartLogging 函数将事件输出至 klog stdout 标准输出，通过 StartRecordingToSink 函数将关键性事件上报至 Kubernetes API Server。代码示例如下：</p>
+<pre><code>if cc.Brodcaster != nil &amp;&amp; cc.EventClient != nil {
+    cc.Broadcaster.StartLogging(klog.V(6).Infof)
+    cc.Broadcaster.StartRecordingToSink(&amp;vlcore.EventSinkImpl{Interface: cc.EventClient.Events("")})
 }</code></pre>
-<p>failures 字段用于统计元素排队数，每当 AddRateLimited 方法插入新元素时，会为该字段加 1；另外，baseDelay 字段是最初的限速单位，maxDelay 字段是最大限速单位。</p>
-<blockquote>
-<p>在同一限速周期内，如果不存在相同元素，那么所有元素的延迟时间为 baseDelay；而在同一限速周期内，如果存在相同元素，那么相同元素的延迟时间呈指数级增长，最长延迟时间不超过 maxDelay。</p>
-</blockquote>
-<h4 id="计数器算法"><a href="#计数器算法" class="headerlink" title="计数器算法"></a>计数器算法</h4><p>其原理是：限制一段时间内允许通过的元素数量。但 WorkQueue 在此基础上扩展了 fast 和 slow 速率。</p>
-<p>计算器算法提供了 4 个主要字段，failures 字段用于统计元素排队数，每当 AddRateLimited 方法插入新元素时，会为该字段加 1；而 fastDelay 和 slowDelay 字段用于定义 fast,slow 速率的，另外 maxFastAttempts 字段用于控制从 fast 速率转换到 slow 速率。计数器算法核心实现代码示例如下：</p>
-<pre><code>r.failures[item] = r.failures[item] + 1
-if r.failures[item] &lt;= r.maxFastAttempts {
-    return r.fastDelay
-}
-return r.slowDelay</code></pre>
-<h4 id="混合模式"><a href="#混合模式" class="headerlink" title="混合模式"></a>混合模式</h4><p>混合模式是将多种限速算法混合使用，即多种限速算法同时生效。例如，同时使用排队指数算法和令牌桶算法，代码示例如下：</p>
-<pre><code>func DefaultControllerRateLimiter() RateLimiter {
-    return NewMaxOfRateLimiter (
-        NewItemExponentialFailureRateLimiter(5*time.Millisecond, 1000*time.Second),
-        &amp; BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(10), 100)},
-    )
+<p>StartLogging 和 StartRecordingToSink 函数依赖于 StartEventWatcher 函数，该函数内部运行了一个 goroutine，用于不断监控 EventBroadcaster 来发现事件并调用相关函数对事件进行处理。</p>
+<p>下面重点介绍下 StartRecordingToSink 函数，kube-scheduler 组件将 v1core.EventSinkImpl 作为上报事件的自定义函数。</p>
+<ul>
+<li>上报事件有三种方法，分别是 Create(Post), Update(Put), Patch(Patch),以 Create 方法为例，Create -&gt; e.Interface.CreateWithEventNamespace 代码示例如下：</li>
+</ul>
+<pre><code>func (e *events) CreateWithEventNamespace(event *v1.Event) (*v1.Event, error) {
+    ...
+    result := &amp;v1.Event{}
+    err := e.client.Post().NamespaceIfScoped(event.Namespace, len(event.Namespace) &gt; 0).Resource("events").Body(event).Do().Into(result)
+    return result, err
 }</code></pre>
+<p>上报过程通过 RESTClient 发送 Post 请求，将事件发送至 Kubernetes API Server，最终存储在 Etcd 集群中。</p>
+<h2 id="代码生成器"><a href="#代码生成器" class="headerlink" title="代码生成器"></a>代码生成器</h2><p>前面已经讲解过 5 种代码生成器的核心实现，它们用于在构建 Kubernetes 核心组件之前生成执行代码。</p>
+<p>本节将介绍关于 client-go 的其他 3 种代码生成器，如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th>代码生成器</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>client-gen</td>
+<td>client-gen 是一种为资源生成 ClientSet 客户端的工具</td>
+</tr>
+<tr>
+<td>lister-gen</td>
+<td>lister-gen 是一种为资源生成 Lister 的工具（即 get 和 list 方法）</td>
+</tr>
+<tr>
+<td>informer-gen</td>
+<td>informer-gen 是一种为资源生成 informer 的工具</td>
+</tr>
+</tbody></table>
+<h3 id="client-gen-代码生成器"><a href="#client-gen-代码生成器" class="headerlink" title="client-gen 代码生成器"></a>client-gen 代码生成器</h3><p>client-gen 代码生成器是一种为资源生成 ClientSet 客户端的工具。ClientSet 对 Group,Version,Resource 进行了封装，可以针对资源执行生成资源操作方法（create,update,delete,get 等），这些方法由 client-gen 代码自动生成器自动生成。</p>
+<p>client-gen 代码生成器的代码生成策略与 Kubernetes 的其他代码生成器类似，都通过 Tags 来识别一个包是否需要生成代码及确定生成代码的方式。</p>
+<ul>
+<li>生成基本的资源操作方法，例如 create, update, delete, get, list, patch, watch 等方法。另外，如果存在 Status 字段，则生成 UpdateStatus 函数，其 Tags 形式如下：</li>
+</ul>
+<pre><code>// +genclient</code></pre>
+<ul>
+<li>生成基本的资源操作函数，不生成 Namespaced 函数，其 Tags 形式如下：</li>
+</ul>
+<pre><code>// +genclient:nonNamespaced</code></pre>
+<ul>
+<li>即便存在 Status 字段，也不生成 UpdateStatus 函数，其 Tags 形式如下：</li>
+</ul>
+<pre><code>// +genclient:noStatus </code></pre>
+<ul>
+<li>不生成基本的资源操作方法，其 Tags 形式如下：</li>
+</ul>
+<pre><code>// +genclient:noVerbs</code></pre>
+<ul>
+<li>仅生成指定的基本操作方法，例如 create, get 方法，其 Tags 形式如下：</li>
+</ul>
+<pre><code>// +genclient:onlyVerbs=create,get</code></pre>
+<ul>
+<li>生成基本的资源操作方法，但排除 watch 方法，其 Tags 形式如下：</li>
+</ul>
+<pre><code>// +genclient:skipVerbs=watch</code></pre>
+<ul>
+<li>生成相关扩展函数，例如生成 UpdateScale 函数，在 UpdateScale 函数中会对 scale 子资源进行 update(更新)操作，input 和 result 是用于 设置输入和输出的参数，其 Tags 形式如下：</li>
+</ul>
+<pre><code>// +genclient:method=UpdateScale,verb=update,subresource=scale,input=Scale,result=Scale</code></pre>
+<h3 id="lister-gen-代码生成器"><a href="#lister-gen-代码生成器" class="headerlink" title="lister-gen 代码生成器"></a>lister-gen 代码生成器</h3><p>lister-gen 代码生成器是一种为资源生成 Lister 的工具。Lister 为每一个 Kubernetes 资源提供 Lister 功能（即提供 get 和 list 方法）。get 和 list 方法为客户端提供只读的本地缓存数据。</p>
+<ul>
+<li><p>lister-gen 代码生成器的代码生成策略与 Kubernetes 的其他代码生成器类似，都通过 Tags 来识别一个包是否需要生成代码及确定生成代码的方式。</p>
+</li>
+<li><p>lister-gen 代码生成器与其他代码生成器相比，其并没有可用的 Tags，它依赖于 client-gen 的代码生成器 // +genclient 标签。</p>
+</li>
+</ul>
+<h3 id="informer-gen-代码生成器"><a href="#informer-gen-代码生成器" class="headerlink" title="informer-gen 代码生成器"></a>informer-gen 代码生成器</h3><p>informer-gen 是一种为资源生成 informer 的工具，Informer 为 client-go 提供了与 Kubernetes API Server 通信机制，这些功能由 informer-gen 代码生成器自动生成。</p>
+<ul>
+<li><p>informer-gen 代码生成器的代码生成策略与 Kubernetes 的其他代码生成器类似，都通过 Tags 来识别一个包是否需要生成代码及确定生成代码的方式。</p>
+</li>
+<li><p>informer-gen 代码生成器与其他代码生成器相比，其并没有可用的 Tags，它依赖于 client-gen 的代码生成器 // +genclient 标签,类似于 lister-gen 代码生成器。</p>
+</li>
+</ul>
 
             </div>
             <hr/>
@@ -617,7 +655,7 @@ return r.slowDelay</code></pre>
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://blog.mj-cjm.top/workqueue/">http://blog.mj-cjm.top/workqueue/</a>
+                    <a href="http://blog.mj-cjm.top/event-gen-ke-hu-duan/">http://blog.mj-cjm.top/event-gen-ke-hu-duan/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -971,13 +1009,13 @@ return r.slowDelay</code></pre>
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/event-gen-ke-hu-duan/">
+                <a href="/k8s-etcd/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/14.jpg" class="responsive-img" alt="client-go 最终章">
+                        <img src="/medias/featureimages/3.jpg" class="responsive-img" alt="Etcd 存储核心实现">
                         
-                        <span class="card-title">client-go 最终章</span>
+                        <span class="card-title">Etcd 存储核心实现</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -988,7 +1026,7 @@ return r.slowDelay</code></pre>
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2020-12-16
+                            <i class="far fa-clock fa-fw icon-date"></i>2020-12-21
                         </span>
                         <span class="publish-author">
                             
@@ -1009,8 +1047,8 @@ return r.slowDelay</code></pre>
                         <span class="chip bg-color">Kubernetes</span>
                     </a>
                     
-                    <a href="/tags/client-go/">
-                        <span class="chip bg-color">client-go</span>
+                    <a href="/tags/etcd/">
+                        <span class="chip bg-color">etcd</span>
                     </a>
                     
                 </div>
@@ -1024,13 +1062,13 @@ return r.slowDelay</code></pre>
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/informer/">
+                <a href="/workqueue/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/19.jpg" class="responsive-img" alt="client-go2.0(informer)">
+                        <img src="/medias/featureimages/10.jpg" class="responsive-img" alt="client-go3.0(workqueue)">
                         
-                        <span class="card-title">client-go2.0(informer)</span>
+                        <span class="card-title">client-go3.0(workqueue)</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -1041,7 +1079,7 @@ return r.slowDelay</code></pre>
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-12-01
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-12-07
                             </span>
                         <span class="publish-author">
                             
