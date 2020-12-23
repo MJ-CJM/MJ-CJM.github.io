@@ -6,7 +6,7 @@
   <link href="http://blog.mj-cjm.top/atom.xml" rel="self"/>
   
   <link href="http://blog.mj-cjm.top/"/>
-  <updated>2020-12-16T14:29:07.241Z</updated>
+  <updated>2020-12-21T10:08:43.799Z</updated>
   <id>http://blog.mj-cjm.top/</id>
   
   <author>
@@ -15,6 +15,52 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Etcd 存储核心实现</title>
+    <link href="http://blog.mj-cjm.top/k8s-etcd/"/>
+    <id>http://blog.mj-cjm.top/k8s-etcd/</id>
+    <published>2020-12-21T10:07:40.000Z</published>
+    <updated>2020-12-21T10:08:43.799Z</updated>
+    
+    
+    
+    
+    <category term="Kubernetes源码解析" scheme="http://blog.mj-cjm.top/categories/Kubernetes%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
+    
+    
+    <category term="Kubernetes" scheme="http://blog.mj-cjm.top/tags/Kubernetes/"/>
+    
+    <category term="etcd" scheme="http://blog.mj-cjm.top/tags/etcd/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>client-go 最终章</title>
+    <link href="http://blog.mj-cjm.top/event-gen-ke-hu-duan/"/>
+    <id>http://blog.mj-cjm.top/event-gen-ke-hu-duan/</id>
+    <published>2020-12-16T14:36:59.000Z</published>
+    <updated>2020-12-23T15:47:49.265Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;EventBroadcaster-事件管理器&quot;&gt;&lt;a href=&quot;#EventBroadcaster-事件管理器&quot; class=&quot;headerlink&quot; title=&quot;EventBroadcaster 事件管理器&quot;&gt;&lt;/a&gt;EventBroadcaster</summary>
+        
+      
+    
+    
+    
+    <category term="Kubernetes源码解析" scheme="http://blog.mj-cjm.top/categories/Kubernetes%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
+    
+    
+    <category term="Kubernetes" scheme="http://blog.mj-cjm.top/tags/Kubernetes/"/>
+    
+    <category term="client-go" scheme="http://blog.mj-cjm.top/tags/client-go/"/>
+    
+  </entry>
   
   <entry>
     <title>client-go3.0(workqueue)</title>
