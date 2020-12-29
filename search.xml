@@ -4,11 +4,11 @@
   
     
     <entry>
-      <title>Etcd 存储核心实现</title>
+      <title>Etcd 存储核心实现-Etcd 存储架构设计</title>
       <link href="k8s-etcd/"/>
       <url>k8s-etcd/</url>
       
-        <content type="html"><![CDATA[]]></content>
+        <content type="html"><![CDATA[<p>Etcd 集群存储 Kubernetes 系统的集群状态和元数据，其中包括所有 Kubernetes 资源对象信息，资源对象状态，集群节点信息等。Kubernetes 将所有数据存储至 Etcd 集群前缀为 /registry 的目录下。</p><h2 id="Etcd-存储架构设计"><a href="#Etcd-存储架构设计" class="headerlink" title="Etcd 存储架构设计"></a>Etcd 存储架构设计</h2><p><img src="../image/Etcd%E5%AD%98%E5%82%A8%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.jpg" alt="Etcd 存储架构设计图"></p><h3 id="RESTStorage"><a href="#RESTStorage" class="headerlink" title="RESTStorage"></a>RESTStorage</h3><p>实现了 RESTful 风格的对外资源存储服务的 API 接口。</p><h3 id="RegistryStore"><a href="#RegistryStore" class="headerlink" title="RegistryStore"></a>RegistryStore</h3><p>实现了资源存储的通用操作，例如，在存储资源对象之间或者之后执行某个函数。</p><h3 id="Storage-Interface"><a href="#Storage-Interface" class="headerlink" title="Storage.Interface"></a>Storage.Interface</h3><p>通用存储接口，该接口定义了资源的操作方法。</p><h3 id="CacherStorage"><a href="#CacherStorage" class="headerlink" title="CacherStorage"></a>CacherStorage</h3><p>带有缓存功能的资源存储对象，它是 Storage.Interface 通用存储接口的实现。CacherStorage 缓存层的设计有利于 Etcd 集群中的数据能够获得快速的响应，并与 Etcd 集群数据保持一致。</p><h3 id="UnderlyingStorage"><a href="#UnderlyingStorage" class="headerlink" title="UnderlyingStorage"></a>UnderlyingStorage</h3><p>底层存储，也被称为 BackendStorage（后端存储），是真正与 Etcd 集群交互的资源存储对象，CacherStorage 相当于 UnderlyingStorage 的缓存层。UnderlyingStorage 同样也是 Storage.Interface 通用存储接口的实现。</p>]]></content>
       
       
       <categories>
