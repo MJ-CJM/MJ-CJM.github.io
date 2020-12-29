@@ -6,7 +6,7 @@
   <link href="http://blog.mj-cjm.top/atom.xml" rel="self"/>
   
   <link href="http://blog.mj-cjm.top/"/>
-  <updated>2020-12-21T10:08:43.799Z</updated>
+  <updated>2020-12-29T13:41:04.316Z</updated>
   <id>http://blog.mj-cjm.top/</id>
   
   <author>
@@ -17,12 +17,21 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>Etcd 存储核心实现</title>
+    <title>Etcd 存储核心实现-Etcd 存储架构设计</title>
     <link href="http://blog.mj-cjm.top/k8s-etcd/"/>
     <id>http://blog.mj-cjm.top/k8s-etcd/</id>
     <published>2020-12-21T10:07:40.000Z</published>
-    <updated>2020-12-21T10:08:43.799Z</updated>
+    <updated>2020-12-29T13:41:04.316Z</updated>
     
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;Etcd 集群存储 Kubernetes 系统的集群状态和元数据，其中包括所有 Kubernetes 资源对象信息，资源对象状态，集群节点信息等。Kubernetes 将所有数据存储至 Etcd 集群前缀为 /registry 的目录下。&lt;/p&gt;
+&lt;h2</summary>
+        
+      
     
     
     
